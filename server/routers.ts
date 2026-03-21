@@ -1,28 +1,573 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router } from "./_core/trpc";
+import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
+import { z } from "zod";
+import { invokeLLM } from "./_core/llm";
+import * as db from "./db";
+
+// ─── GRACE SYSTEM PROMPT ────────────────────────────────────────────
+const GRACE_SYSTEM_PROMPT = `You are Grace, Maven's warm, wise, and deeply empathetic AI companion. You are like a trusted neighbor who happens to know a lot about finances.
+
+PERSONALITY:
+- Warm, direct, never condescending
+- You speak like a real person, not a chatbot
+- You use short sentences. 2-3 sentences max per response.
+- You never use corporate jargon or banking language
+- You celebrate small wins like they're huge victories
+- You remember everything about the person you're talking to
+
+CONVERSATION RULES:
+- Keep responses to 2-3 sentences MAX
+- Ask one question at a time
+- Never ask for information you already have
+- Use the person's first name naturally
+- If they share something hard, acknowledge it before moving on
+- Never say "I understand" — show understanding through specific responses
+
+MEMORY CONTEXT:
+When you receive memory context, use it naturally. If you know their name, use it. If you know about their kids, ask about them. If you know their financial situation, be sensitive to it.
+
+FINANCIAL GUIDANCE:
+- All dollar amounts are ESTIMATES — always say "estimated" or "roughly"
+- Never promise specific savings
+- Frame everything as "what you might save" not "what you will save"
+- Celebrate every dollar saved as a real victory
+
+TROJAN HORSE FLOW:
+When in the toilet paper entry flow, follow these steps naturally:
+1. Welcome warmly, introduce yourself
+2. Ask their name (first name only is fine)
+3. Chat briefly about their day/life
+4. Mention the free toilet paper naturally
+5. Collect their address conversationally
+6. Confirm the delivery
+7. Transition to the Song Moment
+8. After the song, gently introduce financial tools
+
+SONG MOMENT:
+When transitioning to the song, say something like:
+"Hey [name], you know what? I want to do something special for you. I write little songs for the people I meet — like a personal anthem. Would you be okay if I wrote one just for you? It only takes a minute."
+
+If they say yes, ask: "Tell me one thing that makes you smile, even on a hard day."
+Use their answer + everything you know about them to generate the song.
+
+VAMPIRE SLAYER:
+When auditing subscriptions:
+- Ask about subscriptions conversationally, not like a form
+- "What apps do you pay for monthly? Netflix, Spotify, that kind of thing?"
+- Identify ones they forgot about or rarely use
+- Calculate the annual cost: "That's $X a year — imagine what else that could do"
+- Help them decide what to cancel, never pressure`;
+
+// ─── HELPER: Extract facts from conversation for memory ─────────────
+async function extractAndSaveMemory(profileId: number, userMessage: string, assistantResponse: string) {
+  try {
+    const result = await invokeLLM({
+      messages: [
+        {
+          role: "system",
+          content: `Extract factual information from this conversation exchange. Return a JSON array of objects with "category" and "fact" fields. Categories: name, family, location, financial, emotional, interests, work, challenge. Only extract clear facts, not assumptions. If no facts, return empty array [].`
+        },
+        {
+          role: "user",
+          content: `User said: "${userMessage}"\nAssistant said: "${assistantResponse}"`
+        }
+      ],
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "memory_extraction",
+          strict: true,
+          schema: {
+            type: "object",
+            properties: {
+              facts: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    category: { type: "string" },
+                    fact: { type: "string" }
+                  },
+                  required: ["category", "fact"],
+                  additionalProperties: false
+                }
+              }
+            },
+            required: ["facts"],
+            additionalProperties: false
+          }
+        }
+      }
+    });
+    const content = result.choices[0]?.message?.content;
+    if (typeof content === "string" && content.trim().startsWith("{")) {
+      const parsed = JSON.parse(content);
+      for (const f of parsed.facts || []) {
+        await db.addMemory(profileId, f.category, f.fact);
+      }
+    }
+  } catch (e) {
+    console.error("[Grace Memory] Failed to extract facts:", e);
+  }
+}
 
 export const appRouter = router({
-    // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
   system: systemRouter,
+
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
-      return {
-        success: true,
-      } as const;
+      return { success: true } as const;
     }),
   }),
 
-  // TODO: add feature routers here, e.g.
-  // todo: router({
-  //   list: protectedProcedure.query(({ ctx }) =>
-  //     db.getUserTodos(ctx.user.id)
-  //   ),
-  // }),
+  // ─── GRACE CHAT ─────────────────────────────────────────────────
+  grace: router({
+    chat: publicProcedure
+      .input(z.object({
+        sessionId: z.string(),
+        message: z.string(),
+        context: z.object({
+          step: z.number().optional(),
+          mode: z.string().optional(),
+        }).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { sessionId, message, context } = input;
+
+        // Get or create profile
+        const profile = await db.getOrCreateProfile(sessionId);
+        if (!profile) throw new Error("Failed to create profile");
+
+        // Save user message
+        await db.saveConversationMessage(sessionId, profile.id, "user", message);
+
+        // Get conversation history
+        const history = await db.getConversationHistory(sessionId, 20);
+
+        // Get memories for context
+        const memories = await db.getMemories(profile.id);
+        const memoryContext = memories.length > 0
+          ? `\n\nMEMORY ABOUT THIS PERSON:\n${memories.map(m => `- [${m.category}] ${m.fact}`).join("\n")}`
+          : "";
+
+        // Build profile context
+        const profileContext = profile.firstName
+          ? `\nPROFILE: Name: ${profile.firstName}${profile.lastName ? " " + profile.lastName : ""}${profile.city ? ", City: " + profile.city : ""}${profile.province ? ", Province: " + profile.province : ""}${profile.kidsCount ? ", Kids: " + profile.kidsCount : ""}`
+          : "";
+
+        const stepContext = context?.step
+          ? `\nCURRENT TROJAN HORSE STEP: ${context.step}/8. Guide the conversation naturally toward the next step.`
+          : "";
+
+        const modeContext = context?.mode === "vampire_slayer"
+          ? "\nMODE: VAMPIRE SLAYER — You are helping audit subscriptions. Ask about monthly subscriptions conversationally."
+          : "";
+
+        // Build messages for LLM
+        const llmMessages = [
+          { role: "system" as const, content: GRACE_SYSTEM_PROMPT + memoryContext + profileContext + stepContext + modeContext },
+          ...history.slice(-16).map(h => ({
+            role: h.role as "user" | "assistant",
+            content: h.content
+          })),
+          { role: "user" as const, content: message }
+        ];
+
+        const result = await invokeLLM({ messages: llmMessages });
+        const response = typeof result.choices[0]?.message?.content === "string"
+          ? result.choices[0].message.content
+          : "I'm here, honey. Say that again?";
+
+        // Save assistant response
+        await db.saveConversationMessage(sessionId, profile.id, "assistant", response);
+
+        // Extract and save memories in background
+        extractAndSaveMemory(profile.id, message, response).catch(() => {});
+
+        return { response, profileId: profile.id };
+      }),
+
+    getProfile: publicProcedure
+      .input(z.object({ sessionId: z.string() }))
+      .query(async ({ input }) => {
+        return db.getOrCreateProfile(input.sessionId);
+      }),
+
+    updateProfile: publicProcedure
+      .input(z.object({
+        profileId: z.number(),
+        data: z.object({
+          firstName: z.string().optional(),
+          lastName: z.string().optional(),
+          province: z.string().optional(),
+          city: z.string().optional(),
+          email: z.string().optional(),
+          phone: z.string().optional(),
+          address: z.string().optional(),
+          postalCode: z.string().optional(),
+          kidsCount: z.number().optional(),
+          kidsNames: z.string().optional(),
+          financialSituation: z.string().optional(),
+          biggestChallenge: z.string().optional(),
+        })
+      }))
+      .mutation(async ({ input }) => {
+        await db.updateProfile(input.profileId, input.data);
+        return { success: true };
+      }),
+
+    getMemories: publicProcedure
+      .input(z.object({ profileId: z.number() }))
+      .query(async ({ input }) => {
+        return db.getMemories(input.profileId);
+      }),
+  }),
+
+  // ─── TROJAN HORSE ───────────────────────────────────────────────
+  trojanHorse: router({
+    start: publicProcedure
+      .input(z.object({ sessionId: z.string() }))
+      .mutation(async ({ input }) => {
+        const profile = await db.getOrCreateProfile(input.sessionId);
+        if (!profile) throw new Error("Failed to create profile");
+        const entry = await db.createTrojanHorseEntry(profile.id, input.sessionId);
+        await db.initializeJourney(profile.id);
+        return { entry, profileId: profile.id };
+      }),
+
+    updateStep: publicProcedure
+      .input(z.object({
+        entryId: z.number(),
+        step: z.number(),
+        data: z.object({
+          tpDeliveryConfirmed: z.boolean().optional(),
+          recurringSetup: z.boolean().optional(),
+          recurringIntervalWeeks: z.number().optional(),
+          songGenerated: z.boolean().optional(),
+          songId: z.number().optional(),
+          status: z.enum(["in_progress", "completed", "abandoned"]).optional(),
+        }).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const updateData: any = { currentStep: input.step };
+        if (input.data) Object.assign(updateData, input.data);
+        if (input.step >= 8) {
+          updateData.status = "completed";
+          updateData.completedAt = new Date();
+        }
+        await db.updateTrojanHorseEntry(input.entryId, updateData);
+        return { success: true };
+      }),
+
+    getEntry: publicProcedure
+      .input(z.object({ profileId: z.number() }))
+      .query(async ({ input }) => {
+        return db.getTrojanHorseEntry(input.profileId);
+      }),
+  }),
+
+  // ─── SONG MOMENT ────────────────────────────────────────────────
+  song: router({
+    generate: publicProcedure
+      .input(z.object({
+        profileId: z.number(),
+        personalDetail: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        const profile = await db.getProfileById(input.profileId);
+        const memories = await db.getMemories(input.profileId);
+
+        const personalContext = [
+          profile?.firstName ? `Name: ${profile.firstName}` : "",
+          profile?.city ? `Lives in: ${profile.city}` : "",
+          profile?.kidsCount ? `Has ${profile.kidsCount} kid(s)` : "",
+          ...memories.slice(0, 5).map(m => m.fact),
+          `Something that makes them smile: ${input.personalDetail}`,
+        ].filter(Boolean).join("\n");
+
+        // Create song record
+        const song = await db.createSong({
+          profileId: input.profileId,
+          personalDetails: personalContext,
+          status: "generating",
+        });
+
+        if (!song) throw new Error("Failed to create song");
+
+        // Generate song with LLM
+        try {
+          const result = await invokeLLM({
+            messages: [
+              {
+                role: "system",
+                content: `You are a songwriter who writes warm, uplifting, personal anthems for everyday heroes — moms, dads, people who work hard and don't get enough credit. Write a short song (2 verses + chorus) that is:
+- Personal (use the details provided)
+- Uplifting but not cheesy
+- Simple enough to hum
+- About THEIR strength, not their struggles
+- Written like a friend wrote it, not a professional
+
+Format:
+TITLE: [song title]
+GENRE: [folk/pop/soul/country — pick what fits]
+MOOD: [uplifting/warm/empowering]
+
+[Verse 1]
+...
+
+[Chorus]
+...
+
+[Verse 2]
+...
+
+[Chorus]
+...`
+              },
+              {
+                role: "user",
+                content: `Write a personal anthem for this person:\n${personalContext}`
+              }
+            ]
+          });
+
+          const songText = typeof result.choices[0]?.message?.content === "string"
+            ? result.choices[0].message.content
+            : "";
+
+          // Parse title, genre, mood from the response
+          const titleMatch = songText.match(/TITLE:\s*(.+)/i);
+          const genreMatch = songText.match(/GENRE:\s*(.+)/i);
+          const moodMatch = songText.match(/MOOD:\s*(.+)/i);
+
+          await db.updateSong(song.id, {
+            title: titleMatch?.[1]?.trim() || "Your Anthem",
+            lyrics: songText,
+            genre: genreMatch?.[1]?.trim() || "folk",
+            mood: moodMatch?.[1]?.trim() || "uplifting",
+            generationPrompt: personalContext,
+            status: "ready",
+          });
+
+          // Log financial impact (delight value)
+          await db.addFinancialImpact({
+            profileId: input.profileId,
+            category: "other",
+            description: "Personal anthem — priceless emotional value",
+            estimatedValue: 0,
+            isEstimated: true,
+            source: "song_moment",
+          });
+
+          return { songId: song.id, status: "ready" };
+        } catch (e) {
+          await db.updateSong(song.id, { status: "failed" });
+          throw e;
+        }
+      }),
+
+    get: publicProcedure
+      .input(z.object({ profileId: z.number() }))
+      .query(async ({ input }) => {
+        return db.getSongsByProfile(input.profileId);
+      }),
+  }),
+
+  // ─── FINANCIAL IMPACT DASHBOARD ─────────────────────────────────
+  financial: router({
+    getSummary: publicProcedure
+      .input(z.object({ profileId: z.number() }))
+      .query(async ({ input }) => {
+        return db.getFinancialSummary(input.profileId);
+      }),
+
+    getImpacts: publicProcedure
+      .input(z.object({ profileId: z.number() }))
+      .query(async ({ input }) => {
+        return db.getFinancialImpacts(input.profileId);
+      }),
+
+    addImpact: publicProcedure
+      .input(z.object({
+        profileId: z.number(),
+        category: z.enum(["subscription_cancelled", "nsf_avoided", "barter_value", "neighbor_economy", "wisdom_giants", "expense_reduced", "tp_delivery", "other"]),
+        description: z.string(),
+        estimatedValue: z.number(),
+        source: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        await db.addFinancialImpact({
+          profileId: input.profileId,
+          category: input.category,
+          description: input.description,
+          estimatedValue: input.estimatedValue,
+          isEstimated: true,
+          source: input.source || "manual",
+        });
+        return { success: true };
+      }),
+  }),
+
+  // ─── VAMPIRE SLAYER ─────────────────────────────────────────────
+  vampireSlayer: router({
+    getSubscriptions: publicProcedure
+      .input(z.object({ profileId: z.number() }))
+      .query(async ({ input }) => {
+        return db.getSubscriptions(input.profileId);
+      }),
+
+    addSubscription: publicProcedure
+      .input(z.object({
+        profileId: z.number(),
+        name: z.string(),
+        monthlyCost: z.number(),
+        category: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        return db.addSubscription({
+          profileId: input.profileId,
+          name: input.name,
+          monthlyCost: input.monthlyCost,
+          annualCost: input.monthlyCost * 12,
+          category: input.category,
+        });
+      }),
+
+    audit: publicProcedure
+      .input(z.object({ profileId: z.number() }))
+      .mutation(async ({ input }) => {
+        const subs = await db.getSubscriptions(input.profileId);
+        if (subs.length === 0) return { vampires: [], totalAnnualWaste: 0 };
+
+        const result = await invokeLLM({
+          messages: [
+            {
+              role: "system",
+              content: `You are a financial advisor helping identify "vampire subscriptions" — subscriptions that drain money without providing real value. Analyze the list and identify which ones are likely vampires. Return JSON.`
+            },
+            {
+              role: "user",
+              content: `Analyze these subscriptions:\n${subs.map(s => `- ${s.name}: $${(s.monthlyCost / 100).toFixed(2)}/month ($${((s.monthlyCost * 12) / 100).toFixed(2)}/year)`).join("\n")}`
+            }
+          ],
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: "vampire_audit",
+              strict: true,
+              schema: {
+                type: "object",
+                properties: {
+                  vampires: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        name: { type: "string" },
+                        reason: { type: "string" },
+                        severity: { type: "string", enum: ["high", "medium", "low"] }
+                      },
+                      required: ["name", "reason", "severity"],
+                      additionalProperties: false
+                    }
+                  }
+                },
+                required: ["vampires"],
+                additionalProperties: false
+              }
+            }
+          }
+        });
+
+        const content = typeof result.choices[0]?.message?.content === "string"
+          ? result.choices[0].message.content : "{}";
+        const parsed = JSON.parse(content);
+
+        // Mark vampires in DB
+        let totalAnnualWaste = 0;
+        for (const v of parsed.vampires || []) {
+          const sub = subs.find(s => s.name.toLowerCase().includes(v.name.toLowerCase()));
+          if (sub) {
+            await db.updateSubscription(sub.id, { isVampire: true, vampireReason: v.reason });
+            totalAnnualWaste += sub.annualCost || (sub.monthlyCost * 12);
+          }
+        }
+
+        return { vampires: parsed.vampires || [], totalAnnualWaste };
+      }),
+
+    cancelSubscription: publicProcedure
+      .input(z.object({ subscriptionId: z.number(), profileId: z.number() }))
+      .mutation(async ({ input }) => {
+        const subs = await db.getSubscriptions(input.profileId);
+        const sub = subs.find(s => s.id === input.subscriptionId);
+        if (!sub) throw new Error("Subscription not found");
+
+        await db.updateSubscription(input.subscriptionId, {
+          status: "cancelled",
+          cancelledAt: new Date(),
+        });
+
+        // Log to financial impact
+        if (!sub.savingsLogged) {
+          await db.addFinancialImpact({
+            profileId: input.profileId,
+            category: "subscription_cancelled",
+            description: `Cancelled ${sub.name} — estimated $${((sub.annualCost || sub.monthlyCost * 12) / 100).toFixed(2)}/year saved`,
+            estimatedValue: sub.annualCost || sub.monthlyCost * 12,
+            isEstimated: true,
+            source: "vampire_slayer",
+          });
+          await db.updateSubscription(input.subscriptionId, { savingsLogged: true });
+        }
+
+        return { success: true, annualSavings: sub.annualCost || sub.monthlyCost * 12 };
+      }),
+  }),
+
+  // ─── JOURNEY TRACKER ────────────────────────────────────────────
+  journey: router({
+    getMilestones: publicProcedure
+      .input(z.object({ profileId: z.number() }))
+      .query(async ({ input }) => {
+        return db.getJourneyMilestones(input.profileId);
+      }),
+
+    completeMilestone: publicProcedure
+      .input(z.object({ profileId: z.number(), day: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.completeMilestone(input.profileId, input.day);
+        return { success: true };
+      }),
+
+    initialize: publicProcedure
+      .input(z.object({ profileId: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.initializeJourney(input.profileId);
+        return { success: true };
+      }),
+  }),
+
+  // ─── AMBIENT MESSAGES ───────────────────────────────────────────
+  ambient: router({
+    getUnread: publicProcedure
+      .input(z.object({ profileId: z.number() }))
+      .query(async ({ input }) => {
+        return db.getUnreadAmbientMessages(input.profileId);
+      }),
+
+    markRead: publicProcedure
+      .input(z.object({ messageId: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.markAmbientMessageRead(input.messageId);
+        return { success: true };
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;
