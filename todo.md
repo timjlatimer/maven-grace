@@ -60,4 +60,22 @@
 - [x] Warm, conversational UI tone throughout
 - [x] Error states and empty states
 - [x] Vitest test coverage (13 tests passing)
-- [ ] Deploy to live URL
+- [x] Deploy to live URL
+
+## Phase 11 — Feature Gap Audit
+- [x] Re-read all Race 1 specs from vault
+- [x] Re-read all vault documents (platform overview, song strategy, ecosystem narrative)
+- [x] Cross-reference imagined features vs. deployed app (100 features tracked)
+- [x] Correct TP framing (subscription service, not just free TP)
+- [x] Document all gaps with severity and priority
+- [x] Present gap audit to Tim for validation
+- [x] Commit structured backlog artifact to GitHub (commit f49b663)
+
+## Phase 12 — Tim's Feedback (Mar 21, 2026)
+- [x] Switch voice integration target from ElevenLabs to Ke.ai (MiniMax) — noted in gap analysis, MiniMax tools available
+- [x] Update TP framing — cheeky "Maven and Grace Give a Shit" marketing hook — Home.tsx and GraceChat.tsx updated
+- [x] Update design system to original Maven branding — Teal/Mint/Rose/Cream/Poppins
+- [x] Spec Marketing Genius Agent with 35+ strategy framework — committed to GitHub
+- [x] Add Grace Persistence Model — 8-hour max snooze, never gets cut, in system prompt
+- [x] Commit gap analysis to GitHub as living document — committed at f49b663
+- [x] Update gap analysis with Tim's feedback — all directives incorporated

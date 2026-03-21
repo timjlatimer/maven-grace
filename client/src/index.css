@@ -3,10 +3,12 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Maven Grace Design System — Warm, Dignity-Centered, Mobile-First
-   Color philosophy: warm earth tones that feel like a kitchen table conversation,
-   not a bank lobby. Coral/terracotta primary, sage accents, cream backgrounds.
-   Ruby Red should feel welcomed, not judged. */
+/* Maven Grace Design System — Original Maven Branding
+   Colors: Teal (#2DD4BF), Mint (#6EE7B7), Rose (#FB7185), Cream (#FFF8F0)
+   Font: Poppins
+   Philosophy: Warm, dignified, community-centered. Ruby Red should feel
+   like she's sitting at a kitchen table with her wisest neighbor.
+   "Maven and Grace Give a Shit." — Cheeky, real, and proud of it. */
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
@@ -45,118 +47,130 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --font-sans: "Nunito", system-ui, -apple-system, sans-serif;
+  --font-sans: "Poppins", system-ui, -apple-system, sans-serif;
   --color-grace: var(--grace);
   --color-grace-foreground: var(--grace-foreground);
   --color-lift: var(--lift);
   --color-lift-foreground: var(--lift-foreground);
   --color-warmth: var(--warmth);
+  --color-maven-teal: var(--maven-teal);
+  --color-maven-mint: var(--maven-mint);
+  --color-maven-rose: var(--maven-rose);
 }
 
 :root {
-  /* Warm coral/terracotta primary — inviting, not corporate */
-  --primary: oklch(0.65 0.18 25);
-  --primary-foreground: oklch(0.99 0.005 80);
+  /* Maven Teal — primary brand, trust, reliability */
+  --primary: oklch(0.78 0.12 175);
+  --primary-foreground: oklch(0.15 0.03 175);
 
-  /* Sage green — growth, hope, nature */
-  --secondary: oklch(0.92 0.03 145);
-  --secondary-foreground: oklch(0.35 0.05 145);
+  /* Maven Mint — secondary, growth, hope */
+  --secondary: oklch(0.87 0.1 155);
+  --secondary-foreground: oklch(0.2 0.04 155);
 
-  /* Cream/warm white background — kitchen table warmth */
-  --background: oklch(0.985 0.008 80);
-  --foreground: oklch(0.25 0.02 50);
+  /* Cream background — warm, inviting, not clinical */
+  --background: oklch(0.985 0.01 85);
+  --foreground: oklch(0.22 0.02 50);
 
-  /* Cards slightly warmer than background */
-  --card: oklch(0.995 0.005 80);
-  --card-foreground: oklch(0.25 0.02 50);
+  /* Cards — slightly warmer than background */
+  --card: oklch(0.995 0.005 85);
+  --card-foreground: oklch(0.22 0.02 50);
 
-  --popover: oklch(0.995 0.005 80);
-  --popover-foreground: oklch(0.25 0.02 50);
+  --popover: oklch(0.995 0.005 85);
+  --popover-foreground: oklch(0.22 0.02 50);
 
-  /* Muted warm tones */
-  --muted: oklch(0.95 0.01 80);
+  /* Muted — soft cream */
+  --muted: oklch(0.95 0.01 85);
   --muted-foreground: oklch(0.5 0.02 50);
 
-  /* Accent — soft peach */
-  --accent: oklch(0.93 0.04 55);
-  --accent-foreground: oklch(0.3 0.04 50);
+  /* Accent — soft mint highlight */
+  --accent: oklch(0.92 0.06 155);
+  --accent-foreground: oklch(0.2 0.04 155);
 
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
+  /* Maven Rose — for emphasis, alerts, warmth */
+  --destructive: oklch(0.65 0.2 5);
+  --destructive-foreground: oklch(0.98 0.005 5);
 
-  --border: oklch(0.9 0.015 70);
-  --input: oklch(0.92 0.01 70);
-  --ring: oklch(0.65 0.18 25);
+  --border: oklch(0.92 0.01 85);
+  --input: oklch(0.93 0.01 85);
+  --ring: oklch(0.78 0.12 175);
 
-  /* Grace's color — warm teal, trustworthy but not clinical */
-  --grace: oklch(0.6 0.12 195);
-  --grace-foreground: oklch(0.98 0.005 195);
+  /* Grace's color — Maven Teal, trustworthy and warm */
+  --grace: oklch(0.78 0.12 175);
+  --grace-foreground: oklch(0.15 0.03 175);
 
   /* Financial lift — warm gold */
   --lift: oklch(0.72 0.15 85);
   --lift-foreground: oklch(0.2 0.04 85);
 
-  /* Warmth accent for highlights */
-  --warmth: oklch(0.85 0.08 55);
+  /* Warmth accent — soft rose for highlights */
+  --warmth: oklch(0.82 0.1 5);
 
-  /* Charts — warm spectrum */
-  --chart-1: oklch(0.65 0.18 25);
-  --chart-2: oklch(0.6 0.12 195);
-  --chart-3: oklch(0.72 0.15 85);
-  --chart-4: oklch(0.7 0.1 145);
-  --chart-5: oklch(0.6 0.12 320);
+  /* Named Maven brand colors for direct use */
+  --maven-teal: oklch(0.78 0.12 175);
+  --maven-mint: oklch(0.87 0.1 155);
+  --maven-rose: oklch(0.65 0.2 5);
+
+  /* Charts — Maven spectrum */
+  --chart-1: oklch(0.78 0.12 175);
+  --chart-2: oklch(0.87 0.1 155);
+  --chart-3: oklch(0.65 0.2 5);
+  --chart-4: oklch(0.72 0.15 85);
+  --chart-5: oklch(0.6 0.12 280);
 
   --radius: 0.75rem;
 
   /* Sidebar */
-  --sidebar: oklch(0.97 0.01 80);
-  --sidebar-foreground: oklch(0.25 0.02 50);
-  --sidebar-primary: oklch(0.65 0.18 25);
-  --sidebar-primary-foreground: oklch(0.99 0.005 80);
-  --sidebar-accent: oklch(0.93 0.04 55);
-  --sidebar-accent-foreground: oklch(0.3 0.04 50);
-  --sidebar-border: oklch(0.9 0.015 70);
-  --sidebar-ring: oklch(0.65 0.18 25);
+  --sidebar: oklch(0.97 0.01 85);
+  --sidebar-foreground: oklch(0.22 0.02 50);
+  --sidebar-primary: oklch(0.78 0.12 175);
+  --sidebar-primary-foreground: oklch(0.15 0.03 175);
+  --sidebar-accent: oklch(0.92 0.06 155);
+  --sidebar-accent-foreground: oklch(0.2 0.04 155);
+  --sidebar-border: oklch(0.92 0.01 85);
+  --sidebar-ring: oklch(0.78 0.12 175);
 }
 
 .dark {
-  --primary: oklch(0.72 0.16 25);
-  --primary-foreground: oklch(0.15 0.02 25);
-  --secondary: oklch(0.3 0.04 145);
-  --secondary-foreground: oklch(0.85 0.03 145);
-  --background: oklch(0.17 0.015 50);
-  --foreground: oklch(0.9 0.01 80);
-  --card: oklch(0.22 0.015 50);
-  --card-foreground: oklch(0.9 0.01 80);
-  --popover: oklch(0.22 0.015 50);
-  --popover-foreground: oklch(0.9 0.01 80);
+  --primary: oklch(0.78 0.12 175);
+  --primary-foreground: oklch(0.12 0.02 175);
+  --secondary: oklch(0.35 0.06 155);
+  --secondary-foreground: oklch(0.87 0.06 155);
+  --background: oklch(0.15 0.015 50);
+  --foreground: oklch(0.92 0.01 85);
+  --card: oklch(0.2 0.015 50);
+  --card-foreground: oklch(0.92 0.01 85);
+  --popover: oklch(0.2 0.015 50);
+  --popover-foreground: oklch(0.92 0.01 85);
   --muted: oklch(0.28 0.015 50);
   --muted-foreground: oklch(0.65 0.015 50);
-  --accent: oklch(0.3 0.04 55);
-  --accent-foreground: oklch(0.9 0.03 55);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.985 0 0);
+  --accent: oklch(0.3 0.04 155);
+  --accent-foreground: oklch(0.87 0.06 155);
+  --destructive: oklch(0.7 0.18 5);
+  --destructive-foreground: oklch(0.98 0.005 5);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.72 0.16 25);
-  --grace: oklch(0.65 0.1 195);
-  --grace-foreground: oklch(0.15 0.02 195);
+  --ring: oklch(0.78 0.12 175);
+  --grace: oklch(0.78 0.12 175);
+  --grace-foreground: oklch(0.12 0.02 175);
   --lift: oklch(0.75 0.13 85);
   --lift-foreground: oklch(0.15 0.04 85);
-  --warmth: oklch(0.4 0.06 55);
-  --chart-1: oklch(0.72 0.16 25);
-  --chart-2: oklch(0.65 0.1 195);
-  --chart-3: oklch(0.75 0.13 85);
-  --chart-4: oklch(0.7 0.08 145);
-  --chart-5: oklch(0.65 0.1 320);
-  --sidebar: oklch(0.22 0.015 50);
-  --sidebar-foreground: oklch(0.9 0.01 80);
-  --sidebar-primary: oklch(0.72 0.16 25);
-  --sidebar-primary-foreground: oklch(0.15 0.02 25);
-  --sidebar-accent: oklch(0.3 0.04 55);
-  --sidebar-accent-foreground: oklch(0.9 0.03 55);
+  --warmth: oklch(0.4 0.08 5);
+  --maven-teal: oklch(0.78 0.12 175);
+  --maven-mint: oklch(0.4 0.06 155);
+  --maven-rose: oklch(0.7 0.18 5);
+  --chart-1: oklch(0.78 0.12 175);
+  --chart-2: oklch(0.4 0.06 155);
+  --chart-3: oklch(0.7 0.18 5);
+  --chart-4: oklch(0.75 0.13 85);
+  --chart-5: oklch(0.65 0.1 280);
+  --sidebar: oklch(0.2 0.015 50);
+  --sidebar-foreground: oklch(0.92 0.01 85);
+  --sidebar-primary: oklch(0.78 0.12 175);
+  --sidebar-primary-foreground: oklch(0.12 0.02 175);
+  --sidebar-accent: oklch(0.3 0.04 155);
+  --sidebar-accent-foreground: oklch(0.87 0.06 155);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.72 0.16 25);
+  --sidebar-ring: oklch(0.78 0.12 175);
 }
 
 @layer base {
@@ -228,5 +242,10 @@
   /* Safe area padding for bottom nav on notched phones */
   .safe-area-pb {
     padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* Maven "Give a Shit" badge glow */
+  .maven-glow {
+    box-shadow: 0 0 15px oklch(0.78 0.12 175 / 0.25), 0 0 30px oklch(0.87 0.1 155 / 0.15);
   }
 }

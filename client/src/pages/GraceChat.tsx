@@ -51,22 +51,22 @@ export default function GraceChat() {
       if (result.profileId) saveProfileId(result.profileId);
       if (result.entry) setEntryId(result.entry.id);
 
-      // Grace's opening message
+      // Grace's opening — warm, cheeky, real
       const graceOpening = await chatMutation.mutateAsync({
         sessionId,
-        message: "Hi! I just heard about the free toilet paper thing. What's this about?",
+        message: "Hi! I heard Maven actually delivers toilet paper? What's the deal?",
         context: { step: 1, mode: "trojan_horse" },
       });
 
       setMessages([
-        { role: "user", content: "Hi! I just heard about the free toilet paper thing. What's this about?" },
+        { role: "user", content: "Hi! I heard Maven actually delivers toilet paper? What's the deal?" },
         { role: "assistant", content: graceOpening.response },
       ]);
       if (graceOpening.profileId) saveProfileId(graceOpening.profileId);
     } catch (e) {
       setMessages([{
         role: "assistant",
-        content: "Hey there! I'm Grace. I heard you might need some toilet paper? We deliver it free — no strings, no catch. What's your name, neighbor?"
+        content: "Hey there! I'm Grace. Yeah, we literally give a shit — toilet paper delivered to your door, no strings attached. It's part of what we do here at Maven. But honestly? The TP is just the beginning. I'm here to help with the real stuff too — bills, subscriptions draining your wallet, making it to payday. What's your name, neighbor?"
       }]);
     }
   };
@@ -98,7 +98,7 @@ export default function GraceChat() {
     } catch (e) {
       setMessages([...newMessages, {
         role: "assistant",
-        content: "Sorry, I got a little distracted. What were you saying?"
+        content: "Sorry, I got a little distracted there. What were you saying?"
       }]);
     }
 
@@ -119,12 +119,12 @@ export default function GraceChat() {
         <button onClick={() => navigate("/")} className="text-muted-foreground hover:text-foreground">
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <div className="w-9 h-9 rounded-full bg-grace/20 flex items-center justify-center">
-          <Sparkles className="w-4 h-4 text-grace" />
+        <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center">
+          <Sparkles className="w-4 h-4 text-primary" />
         </div>
         <div>
           <h1 className="text-sm font-bold text-foreground">Grace</h1>
-          <p className="text-xs text-grace">Your Maven neighbor</p>
+          <p className="text-xs text-primary">Your Maven neighbor — always here</p>
         </div>
         {step <= 8 && (
           <div className="ml-auto flex items-center gap-1">
@@ -133,7 +133,7 @@ export default function GraceChat() {
                 key={i}
                 className={cn(
                   "w-2 h-2 rounded-full transition-colors",
-                  i < step ? "bg-grace" : "bg-muted"
+                  i < step ? "bg-primary" : "bg-muted"
                 )}
               />
             ))}
@@ -149,17 +149,20 @@ export default function GraceChat() {
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.5 }}
-              className="w-20 h-20 rounded-full bg-grace/10 flex items-center justify-center mb-6"
+              className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6 maven-glow"
             >
-              <Sparkles className="w-10 h-10 text-grace grace-pulse" />
+              <Sparkles className="w-10 h-10 text-primary grace-pulse" />
             </motion.div>
             <h2 className="text-xl font-bold text-foreground mb-2">Meet Grace</h2>
-            <p className="text-muted-foreground mb-6 max-w-sm">
-              She's like your wisest neighbor — the one who always has your back. She's got a gift for you. No forms. No catch.
+            <p className="text-muted-foreground mb-2 max-w-sm">
+              She's like your wisest neighbor — the one who always has your back and always gives a shit.
+            </p>
+            <p className="text-sm text-muted-foreground mb-6 max-w-sm">
+              She's got toilet paper, a song with your name on it, and real help with the hard stuff. No forms. No catch.
             </p>
             <Button
               size="lg"
-              className="bg-grace hover:bg-grace/90 text-grace-foreground font-bold rounded-xl h-14 px-8"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-xl h-14 px-8"
               onClick={handleStart}
               disabled={startMutation.isPending}
             >
@@ -170,6 +173,9 @@ export default function GraceChat() {
               )}
               Start Chatting with Grace
             </Button>
+            <p className="text-xs text-muted-foreground mt-4 max-w-xs">
+              Grace never gets cut. Even if you can't pay, she stays. She's not a feature — she's your friend.
+            </p>
           </div>
         ) : (
           <ScrollArea className="h-full">
@@ -187,15 +193,15 @@ export default function GraceChat() {
                     )}
                   >
                     {msg.role === "assistant" && (
-                      <div className="w-7 h-7 rounded-full bg-grace/15 flex items-center justify-center shrink-0 mt-1">
-                        <Sparkles className="w-3.5 h-3.5 text-grace" />
+                      <div className="w-7 h-7 rounded-full bg-primary/15 flex items-center justify-center shrink-0 mt-1">
+                        <Sparkles className="w-3.5 h-3.5 text-primary" />
                       </div>
                     )}
                     <div
                       className={cn(
                         "rounded-2xl px-4 py-2.5 text-sm",
                         msg.role === "user"
-                          ? "bg-primary text-primary-foreground rounded-br-md"
+                          ? "bg-maven-rose text-white rounded-br-md"
                           : "bg-muted text-foreground rounded-bl-md"
                       )}
                     >
@@ -217,14 +223,14 @@ export default function GraceChat() {
                   animate={{ opacity: 1 }}
                   className="flex gap-2"
                 >
-                  <div className="w-7 h-7 rounded-full bg-grace/15 flex items-center justify-center shrink-0">
-                    <Sparkles className="w-3.5 h-3.5 text-grace" />
+                  <div className="w-7 h-7 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
+                    <Sparkles className="w-3.5 h-3.5 text-primary" />
                   </div>
                   <div className="rounded-2xl rounded-bl-md bg-muted px-4 py-3">
                     <div className="flex gap-1">
-                      <div className="w-2 h-2 rounded-full bg-grace/40 animate-bounce" style={{ animationDelay: "0ms" }} />
-                      <div className="w-2 h-2 rounded-full bg-grace/40 animate-bounce" style={{ animationDelay: "150ms" }} />
-                      <div className="w-2 h-2 rounded-full bg-grace/40 animate-bounce" style={{ animationDelay: "300ms" }} />
+                      <div className="w-2 h-2 rounded-full bg-primary/40 animate-bounce" style={{ animationDelay: "0ms" }} />
+                      <div className="w-2 h-2 rounded-full bg-primary/40 animate-bounce" style={{ animationDelay: "150ms" }} />
+                      <div className="w-2 h-2 rounded-full bg-primary/40 animate-bounce" style={{ animationDelay: "300ms" }} />
                     </div>
                   </div>
                 </motion.div>
@@ -247,14 +253,14 @@ export default function GraceChat() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Talk to Grace..."
-              className="flex-1 max-h-24 resize-none min-h-10 rounded-xl bg-muted/50 border-0 focus-visible:ring-grace/30"
+              className="flex-1 max-h-24 resize-none min-h-10 rounded-xl bg-muted/50 border-0 focus-visible:ring-primary/30"
               rows={1}
             />
             <Button
               type="submit"
               size="icon"
               disabled={!input.trim() || chatMutation.isPending}
-              className="shrink-0 h-10 w-10 rounded-xl bg-grace hover:bg-grace/90 text-grace-foreground"
+              className="shrink-0 h-10 w-10 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               {chatMutation.isPending ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
