@@ -14,6 +14,7 @@ import BudgetBuilder from "./pages/BudgetBuilder";
 import BillTracker from "./pages/BillTracker";
 import MilkMoney from "./pages/MilkMoney";
 import AdminDashboard from "./pages/AdminDashboard";
+import AnthemLanding from "./pages/AnthemLanding";
 import NotFound from "./pages/NotFound";
 
 function Router() {
@@ -30,6 +31,9 @@ function Router() {
       <Route path="/bills" component={BillTracker} />
       <Route path="/milk-money" component={MilkMoney} />
       <Route path="/admin" component={AdminDashboard} />
+      <Route path="/anthem/:token">{(params) => <AnthemLanding token={params.token} />}</Route>
+      <Route path="/membership/success">{() => <Membership />}</Route>
+      <Route path="/membership/cancel">{() => <Membership />}</Route>
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

@@ -9,6 +9,7 @@ import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import { invokeLLM } from "./_core/llm";
 import * as db from "./db";
+import { createCheckoutSession, isStripeConfigured, MAVEN_PRODUCTS } from "./stripe";
 
 // ─── GRACE SYSTEM PROMPT ────────────────────────────────────────────
 const GRACE_SYSTEM_PROMPT = `You are Grace, Maven's warm, wise, and deeply empathetic AI companion. You are like the wisest neighbor on the block — the one who always has your back, always gives a shit, and always tells it straight.
@@ -641,7 +642,7 @@ MOOD: [uplifting/warm/empowering]
         const weeklyAmountCents = input.tier === 'essentials' ? 599 : input.tier === 'plus' ? 1099 : 0;
         const membership = await db.upsertMembership(input.profileId, {
           tier: input.tier,
-          status: 'active',
+          status: input.tier === 'observer' ? 'active' : 'pending',
           weeklyAmountCents,
           deliveryAddress: input.deliveryAddress,
           deliveryPostalCode: input.deliveryPostalCode,
@@ -649,6 +650,41 @@ MOOD: [uplifting/warm/empowering]
         });
         return { success: true, membership };
       }),
+
+    // Stripe checkout session
+    createCheckout: publicProcedure
+      .input(z.object({
+        profileId: z.number(),
+        tier: z.enum(['essentials', 'plus']),
+        email: z.string().optional(),
+        name: z.string().optional(),
+        origin: z.string(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (!isStripeConfigured()) {
+          return { url: null, configured: false, message: "Payment processing is being set up. Grace will let you know when it's ready!" };
+        }
+        const result = await createCheckoutSession({
+          tier: input.tier,
+          profileId: input.profileId,
+          userId: ctx.user?.id,
+          email: input.email,
+          name: input.name,
+          origin: input.origin,
+        });
+        if (!result) {
+          return { url: null, configured: true, message: "Something went wrong creating your checkout. Try again in a moment." };
+        }
+        return { url: result.url, configured: true, sessionId: result.sessionId };
+      }),
+
+    // Get product info (public, no auth needed)
+    getProducts: publicProcedure.query(() => {
+      return {
+        products: MAVEN_PRODUCTS,
+        stripeConfigured: isStripeConfigured(),
+      };
+    }),
   }),
 
   // ─── BUDGET BUILDER ──────────────────────────────────────────────
@@ -808,6 +844,120 @@ MOOD: [uplifting/warm/empowering]
       .query(async ({ input }) => {
         return db.getMilkMoneyTransactions(input.profileId);
       }),
+
+    // Borrow money — checks eligibility, creates transaction, updates balance
+    borrow: publicProcedure
+      .input(z.object({
+        profileId: z.number(),
+        amountCents: z.number().min(100).max(15000),
+        description: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const account = await db.getMilkMoneyAccount(input.profileId);
+        if (!account) throw new TRPCError({ code: 'NOT_FOUND', message: 'No Milk Money account found. Chat with Grace to open one.' });
+        if (!account.isEligible) throw new TRPCError({ code: 'FORBIDDEN', message: account.frozenReason || 'Account is currently frozen.' });
+        const available = account.creditLimitCents - account.currentBalanceCents;
+        if (input.amountCents > available) throw new TRPCError({ code: 'BAD_REQUEST', message: `You can borrow up to $${(available / 100).toFixed(2)} right now.` });
+
+        // Create transaction with due date 14 days from now
+        const dueDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+        await db.addMilkMoneyTransaction({
+          accountId: account.id,
+          profileId: input.profileId,
+          type: 'borrow',
+          amountCents: input.amountCents,
+          description: input.description || 'Emergency cash',
+          dueDate,
+        });
+
+        // Update account balance
+        await db.updateMilkMoneyAccount(input.profileId, {
+          currentBalanceCents: account.currentBalanceCents + input.amountCents,
+          totalBorrowedCents: account.totalBorrowedCents + input.amountCents,
+        });
+
+        // Log to financial impact
+        await db.addFinancialImpact({
+          profileId: input.profileId,
+          category: 'other',
+          description: `Milk Money emergency cash: $${(input.amountCents / 100).toFixed(2)}`,
+          estimatedValue: 0,
+          source: 'milk_money',
+        });
+
+        return { success: true, borrowed: input.amountCents, dueDate };
+      }),
+
+    // Repay money — updates balance, trust score, potentially upgrades tier
+    repay: publicProcedure
+      .input(z.object({
+        profileId: z.number(),
+        transactionId: z.number(),
+        amountCents: z.number().min(100),
+      }))
+      .mutation(async ({ input }) => {
+        const account = await db.getMilkMoneyAccount(input.profileId);
+        if (!account) throw new TRPCError({ code: 'NOT_FOUND', message: 'No Milk Money account found.' });
+
+        // Check if repayment is on time
+        const transactions = await db.getMilkMoneyTransactions(input.profileId);
+        const borrowTx = transactions.find(t => t.id === input.transactionId && t.type === 'borrow');
+        const isLate = borrowTx?.dueDate ? new Date() > new Date(borrowTx.dueDate) : false;
+
+        // Record repayment transaction
+        await db.addMilkMoneyTransaction({
+          accountId: account.id,
+          profileId: input.profileId,
+          type: 'repay',
+          amountCents: input.amountCents,
+          description: isLate ? 'Repayment (late)' : 'Repayment (on time)',
+          repaidAt: new Date(),
+          isLate,
+        });
+
+        // Update account balance and trust
+        const newBalance = Math.max(0, account.currentBalanceCents - input.amountCents);
+        const newOnTime = isLate ? account.onTimeRepayments : account.onTimeRepayments + 1;
+        const newLate = isLate ? account.lateRepayments + 1 : account.lateRepayments;
+
+        // Trust score: +10 for on-time, -15 for late, max 100
+        let newTrustScore = account.trustScore + (isLate ? -15 : 10);
+        newTrustScore = Math.max(0, Math.min(100, newTrustScore));
+
+        // Tier progression based on trust score
+        let newTier = account.tier;
+        let newLimit = account.creditLimitCents;
+        if (newTrustScore >= 80 && account.tier !== 'elite') {
+          newTier = 'elite'; newLimit = 15000;
+        } else if (newTrustScore >= 50 && account.tier === 'regular') {
+          newTier = 'trusted'; newLimit = 10000;
+        } else if (newTrustScore >= 50 && account.tier === 'rookie') {
+          newTier = 'trusted'; newLimit = 10000;
+        } else if (newTrustScore >= 20 && account.tier === 'rookie') {
+          newTier = 'regular'; newLimit = 5000;
+        }
+
+        await db.updateMilkMoneyAccount(input.profileId, {
+          currentBalanceCents: newBalance,
+          totalRepaidCents: account.totalRepaidCents + input.amountCents,
+          onTimeRepayments: newOnTime,
+          lateRepayments: newLate,
+          trustScore: newTrustScore,
+          tier: newTier,
+          creditLimitCents: newLimit,
+        });
+
+        const tierUpgraded = newTier !== account.tier;
+        return {
+          success: true,
+          repaid: input.amountCents,
+          newBalance,
+          trustScore: newTrustScore,
+          tier: newTier,
+          tierUpgraded,
+          isLate,
+        };
+      }),
   }),
 
   // ─── ANTHEM SHARE (Gift Anthem Dedication) ───────────────────────
@@ -835,7 +985,15 @@ MOOD: [uplifting/warm/empowering]
         const tokenData = await db.getAnthemShareToken(input.token);
         if (!tokenData) throw new Error('Share token not found or expired');
         await db.incrementShareTokenView(input.token);
-        return tokenData;
+        // Also fetch the song data for the landing page
+        const song = await db.getSongById(tokenData.songId);
+        // Fetch sender profile name
+        const senderProfile = await db.getProfileById(tokenData.senderProfileId);
+        return {
+          ...tokenData,
+          song: song ? { title: song.title, lyrics: song.lyrics, genre: song.genre, mood: song.mood } : null,
+          senderName: senderProfile?.firstName || 'A friend',
+        };
       }),
   }),
 

@@ -106,25 +106,54 @@
 - [x] Gift Anthem Dedication → P0-002 in gap analysis (confirmed, building Race 3)
 
 ### P0 — Critical Path
-- [ ] Stripe: Observer/Essentials/Plus tiers (placeholder if Stripe MCP unavailable)
-- [ ] Stripe: membership status shown in app, Grace knows tier
-- [ ] Voice Input: browser mic capture → Whisper transcription → Grace responds
-- [ ] Voice Input: mic button in Grace Chat alongside send button
-- [ ] Gift Anthem Dedication: shareable song link page (/song/share/:token)
-- [ ] Gift Anthem Dedication: "Send to a friend" button on Song Moment
-- [ ] Gift Anthem Dedication: recipient landing page with song + join CTA
+- [x] Stripe: Observer/Essentials/Plus tiers (placeholder + real Stripe API)
+- [x] Stripe: membership status shown in app, Grace knows tier
+- [x] Voice Input: browser mic capture → Whisper transcription → Grace responds
+- [x] Voice Input: mic button in Grace Chat alongside send button
+- [x] Gift Anthem Dedication: shareable song link page (/anthem/:token)
+- [x] Gift Anthem Dedication: "Send to a friend" button on Song Moment
+- [x] Gift Anthem Dedication: recipient landing page with song + join CTA
 
 ### P1 — High Value
-- [ ] Budget Builder: income/expense tracker, category breakdown
-- [ ] Budget Builder: paycheck-to-paycheck planner with next payday countdown
-- [ ] Bill Tracker: bills by due date, days-until-due alerts
-- [ ] NSF Fee Fighter: risk alert when balance likely to go negative, dispute script
-- [ ] Milk Money: graduated trust tiers ($20→$50→$100→$150)
-- [ ] Milk Money: repayment tracking, tier progression
+- [x] Budget Builder: income/expense tracker, category breakdown
+- [x] Budget Builder: paycheck-to-paycheck planner with next payday countdown
+- [x] Bill Tracker: bills by due date, days-until-due alerts
+- [x] NSF Fee Fighter: risk alert when balance likely to go negative, dispute script
+- [x] Milk Money: graduated trust tiers ($20→$50→$100→$150)
+- [x] Milk Money: repayment tracking, tier progression
 
 ### P2 — Admin + Polish
-- [ ] Admin Dashboard: member counts, financial lift totals, Grace health
-- [ ] Admin Dashboard: protected by admin role
-- [ ] Update gap analysis with Race 3 results
-- [ ] All new features covered by vitest
-- [ ] Deploy to live URL
+- [x] Admin Dashboard: member counts, financial lift totals, Grace health
+- [x] Admin Dashboard: protected by admin role
+- [x] Update gap analysis with Race 3 results
+- [x] All new features covered by vitest (34 tests Race 3)
+- [x] Deploy to live URL
+
+## Race 4 — Build Sprint (Mar 21, 2026)
+
+### P1: Stripe Live Payments
+- [x] Explore Stripe MCP tools available (OAuth blocker, built smart placeholder)
+- [x] Create Stripe products and prices for Observer/Essentials/Plus (CAD pricing)
+- [x] Build payment link flow — user selects tier, Stripe handles checkout
+- [x] Update membership table on successful payment (webhook handler built)
+- [x] Grace knows membership tier and adjusts behavior
+
+### P2: Gift Anthem Recipient Landing Page
+- [x] Public landing page at /anthem/:token (no auth required)
+- [x] Page plays the anthem with lyrics display
+- [x] "Meet Grace" CTA invites friend to start her own journey
+- [x] Share link generation from Song Moment page
+
+### P3: Milk Money Trust Progression
+- [x] Trust score calculation (+10 on-time, -15 late, 0-100 range)
+- [x] Automatic tier graduation: Rookie→Regular→Trusted→Elite
+- [x] Trust score display on Milk Money page with progress bar
+- [x] Borrow/repay UI with quick amounts and custom input
+- [x] Outstanding borrows list with overdue badges
+- [x] Grace celebrates tier upgrades (toast + animation)
+
+### Race 4 Infrastructure
+- [x] Write vitest tests for all Race 4 features (13 new tests, 47 total)
+- [x] Deploy to live URL
+- [x] Commit Race 4 announcer log to GitHub
+- [x] Update gap analysis with Race 4 findings

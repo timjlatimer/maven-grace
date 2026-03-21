@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { CheckCircle, Package, Sparkles, Heart, Truck, ArrowRight } from "lucide-react";
+import { CheckCircle, Package, Sparkles, Heart, Truck, ArrowRight, CreditCard, Loader2 } from "lucide-react";
 import { Link } from "wouter";
 
 const TIERS = [
@@ -84,14 +84,38 @@ export default function Membership() {
     { enabled: !!profileId }
   );
 
+  const { data: productInfo } = trpc.membership.getProducts.useQuery();
+
   const upsertMembership = trpc.membership.upsert.useMutation({
     onSuccess: () => {
       refetch();
-      toast.success("Welcome to Maven! 🎉 Grace is so happy you're here.");
+      toast.success("Welcome to Maven! Grace is so happy you're here.");
       setJoining(false);
     },
     onError: () => {
       toast.error("Something went wrong. Try again?");
+      setJoining(false);
+    },
+  });
+
+  const createCheckout = trpc.membership.createCheckout.useMutation({
+    onSuccess: (data) => {
+      if (data.url) {
+        // Redirect to Stripe Checkout
+        window.location.href = data.url;
+      } else if (!data.configured) {
+        // Stripe not configured — fall back to free activation
+        toast.info("Payment processing is being finalized. We'll activate your membership now and bill you when it's ready. No surprises.", { duration: 6000 });
+        if (profileId && selectedTier && selectedTier !== "observer") {
+          upsertMembership.mutate({ profileId, tier: selectedTier });
+        }
+      } else {
+        toast.error(data.message || "Something went wrong. Try again?");
+        setJoining(false);
+      }
+    },
+    onError: (err) => {
+      toast.error(err.message || "Checkout failed. Try again?");
       setJoining(false);
     },
   });
@@ -101,16 +125,26 @@ export default function Membership() {
       toast.error("Start a conversation with Grace first!");
       return;
     }
-    if (tier !== "observer") {
-      // Stripe placeholder — payment not yet wired
-      toast.info("💳 Payment processing coming soon! We're setting up Stripe. For now, we'll activate your membership and you'll be first in line when billing goes live.", { duration: 6000 });
-    }
+
     setJoining(true);
     setSelectedTier(tier);
-    await upsertMembership.mutateAsync({ profileId, tier });
+
+    if (tier === "observer") {
+      // Free tier — just activate
+      await upsertMembership.mutateAsync({ profileId, tier });
+      return;
+    }
+
+    // Paid tier — try Stripe checkout
+    createCheckout.mutate({
+      profileId,
+      tier,
+      origin: window.location.origin,
+    });
   };
 
   const currentTier = membership?.tier;
+  const stripeReady = productInfo?.stripeConfigured ?? false;
 
   return (
     <div className="min-h-screen bg-cream pb-24">
@@ -149,6 +183,7 @@ export default function Membership() {
         {TIERS.map((tier) => {
           const Icon = tier.icon;
           const isCurrent = currentTier === tier.id;
+          const isProcessing = joining && selectedTier === tier.id;
           return (
             <Card key={tier.id} className={`p-5 border-2 ${tier.color} ${tier.highlight ? "shadow-lg" : ""}`}>
               <div className="flex items-start justify-between mb-3">
@@ -169,7 +204,7 @@ export default function Membership() {
                 {tier.weeklyPrice ? (
                   <div className="flex items-baseline gap-1">
                     <span className="text-3xl font-bold text-gray-900">${tier.weeklyPrice}</span>
-                    <span className="text-gray-500 text-sm">/week</span>
+                    <span className="text-gray-500 text-sm">/week CAD</span>
                     <span className="text-gray-400 text-xs ml-2">(~${tier.monthlyPrice}/mo)</span>
                   </div>
                 ) : (
@@ -197,11 +232,29 @@ export default function Membership() {
                 <Button
                   className={`w-full ${tier.highlight ? "bg-teal-600 hover:bg-teal-700 text-white" : "bg-gray-800 hover:bg-gray-900 text-white"}`}
                   onClick={() => handleJoin(tier.id)}
-                  disabled={joining && selectedTier === tier.id}
+                  disabled={isProcessing}
                 >
-                  {joining && selectedTier === tier.id ? "Joining..." : tier.cta}
-                  <ArrowRight className="w-4 h-4 ml-2" />
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Setting up...
+                    </>
+                  ) : (
+                    <>
+                      {tier.weeklyPrice && stripeReady && <CreditCard className="w-4 h-4 mr-2" />}
+                      {tier.cta}
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </>
+                  )}
                 </Button>
+              )}
+
+              {/* Stripe badge for paid tiers */}
+              {tier.weeklyPrice && (
+                <p className="text-xs text-gray-400 mt-2 text-center flex items-center justify-center gap-1">
+                  <CreditCard className="w-3 h-3" />
+                  {stripeReady ? "Secure payment via Stripe" : "Payment processing being finalized"}
+                </p>
               )}
             </Card>
           );
@@ -222,7 +275,7 @@ export default function Membership() {
               </div>
             ))}
           </div>
-          <p className="text-amber-600 text-xs mt-3">Delivered every 2-3 weeks. No subscription traps. Cancel anytime.</p>
+          <p className="text-amber-600 text-xs mt-3">Delivered every 2-3 weeks. No subscription traps. Cancel anytime. All prices in CAD.</p>
         </Card>
       </div>
 
