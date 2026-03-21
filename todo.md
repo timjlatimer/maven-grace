@@ -79,3 +79,13 @@
 - [x] Add Grace Persistence Model — 8-hour max snooze, never gets cut, in system prompt
 - [x] Commit gap analysis to GitHub as living document — committed at f49b663
 - [x] Update gap analysis with Tim's feedback — all directives incorporated
+
+## Phase 13 — KIE.AI Voice Integration (Mar 21, 2026)
+- [x] Store KIE.AI API key as server secret (never exposed to browser)
+- [x] Build server-side tRPC voice.speak endpoint (createTask + poll + return audio URL)
+- [x] Wire voice into Song Moment — Grace reads anthem aloud on generation
+- [x] Wire voice into Grace Chat — speaker icon toggle for spoken responses
+- [x] Audio player component (play/pause, progress bar)
+- [x] Graceful fallback if KIE.AI is unavailable
+- [x] Vitest tests for voice router (7 tests, all passing)
+- [x] Deploy to live URL

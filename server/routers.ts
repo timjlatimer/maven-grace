@@ -1,4 +1,5 @@
 import { COOKIE_NAME } from "@shared/const";
+import { textToSpeech, isKieAiConfigured } from "./kieai";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
@@ -558,6 +559,39 @@ MOOD: [uplifting/warm/empowering]
         await db.initializeJourney(input.profileId);
         return { success: true };
       }),
+  }),
+
+  // ─── VOICE (KIE.AI) ─────────────────────────────────────────────
+  voice: router({
+    /**
+     * Convert text to speech using KIE.AI (Grace's Maria voice).
+     * The API key never leaves the server.
+     * Returns a playable audio URL.
+     */
+    speak: publicProcedure
+      .input(z.object({
+        text: z.string().min(1).max(4500),
+        // Optional: caller can tag the source for logging
+        source: z.enum(["chat", "song", "ambient"]).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        if (!isKieAiConfigured()) {
+          throw new Error("KIE.AI voice is not configured on this server");
+        }
+        const audioUrl = await textToSpeech(input.text);
+        return { audioUrl };
+      }),
+
+    /**
+     * Health check — confirms KIE.AI credentials are present.
+     * Does NOT make a real API call (no cost, no latency).
+     */
+    status: publicProcedure.query(() => ({
+      configured: isKieAiConfigured(),
+      provider: "KIE.AI",
+      model: "elevenlabs/text-to-speech-multilingual-v2",
+      voice: "Maria (hpp4J3VqNfWAUOO0d1Us)",
+    })),
   }),
 
   // ─── AMBIENT MESSAGES ───────────────────────────────────────────
