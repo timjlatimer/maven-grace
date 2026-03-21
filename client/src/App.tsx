@@ -15,6 +15,11 @@ import BillTracker from "./pages/BillTracker";
 import MilkMoney from "./pages/MilkMoney";
 import AdminDashboard from "./pages/AdminDashboard";
 import AnthemLanding from "./pages/AnthemLanding";
+import DignityScore from "./pages/DignityScore";
+import PromisesKeep from "./pages/PromisesKeep";
+import DestinyDiscovery from "./pages/DestinyDiscovery";
+import StoryLibrary from "./pages/StoryLibrary";
+import VillageDirectory from "./pages/VillageDirectory";
 import NotFound from "./pages/NotFound";
 
 function Router() {
@@ -34,6 +39,11 @@ function Router() {
       <Route path="/anthem/:token">{(params) => <AnthemLanding token={params.token} />}</Route>
       <Route path="/membership/success">{() => <Membership />}</Route>
       <Route path="/membership/cancel">{() => <Membership />}</Route>
+      <Route path="/dignity" component={DignityScore} />
+      <Route path="/promises" component={PromisesKeep} />
+      <Route path="/destiny" component={DestinyDiscovery} />
+      <Route path="/stories" component={StoryLibrary} />
+      <Route path="/village" component={VillageDirectory} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

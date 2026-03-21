@@ -157,3 +157,49 @@
 - [x] Deploy to live URL
 - [x] Commit Race 4 announcer log to GitHub
 - [x] Update gap analysis with Race 4 findings
+
+## Race 5 Backlog (queued, open for improvement)
+- [ ] Dignity Score composite metric (spec committed to vault — living doc)
+- [ ] Grace proactive Milk Money repayment nudges (spec committed to vault — living doc)
+- [ ] Repayment Genie — smart payment splitting, bank harmonization, cascading half-splits on missed payments
+- [ ] Promises to Keep (PTK) Genie — bidirectional promise tracking, adaptive nudge psychology, willingness grading
+- [ ] Destiny Discovery — Grace as coach, 30+ questions consumed gradually, moonshot reveal moment
+- [ ] Journalist Agent — Jolene Protocol storytelling, Grace as narrator, Maria/Lucia future media enrichment
+
+## Race 5 — Full Build Sprint (Mar 21, 2026)
+
+### P0: Dignity Score Composite Metric
+- [x] Database: dignity_scores table (daily snapshots, 5 dimensions)
+- [x] Backend: dignity score calculation engine (weighted 20 pts each dimension)
+- [x] Frontend: Dignity Score page with radial progress, tier labels, dimension breakdown
+
+### P1: Grace Milk Money Nudges + Repayment Genie
+- [x] Backend: nudge detection (3-day warning, due-day, 1-day overdue, 3-day overdue)
+- [x] Backend: repayment split scheduling (two-payment aligned to paydays)
+- [x] Frontend: nudge messages in Grace ambient system + "Repay Now" quick action
+
+### P2: Promises to Keep (PTK) Genie
+- [x] Database: promises table (bidirectional — made by Ruby + made TO Ruby)
+- [x] Backend: commitment detection, willingness meter, adaptive nudge intensity
+- [x] Frontend: Promises page with active/completed/broken promise tracking
+
+### P3: Destiny Discovery
+- [x] Database: destiny_answers table, destiny_synthesis table
+- [x] Backend: question delivery engine (3 waves, 30 questions, LLM synthesis)
+- [x] Frontend: Destiny page with progress, answered questions, synthesis reveal
+
+### P4: Jolene the Journalist
+- [x] Database: stories table
+- [x] Backend: story detection engine, LLM story generator (Jolene Protocol)
+- [x] Frontend: Story Library page (/stories), story cards in Grace chat
+
+### P5: AI Village Naming Convention
+- [x] Database: village_agents table, agent_introductions table (21 agents seeded)
+- [x] Backend: agent directory, rename system, introduction tracking
+- [x] Frontend: Village Directory page, Grace agent introductions in chat
+
+### Race 5 Infrastructure
+- [x] Write vitest tests for all Race 5 features (21 new tests, 68 total)
+- [x] Deploy to live URL
+- [x] Commit Race 5 announcer log to GitHub
+- [x] Update gap analysis with Race 5 findings

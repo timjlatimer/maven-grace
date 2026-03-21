@@ -290,3 +290,116 @@ export const anthemShareTokens = mysqlTable("anthem_share_tokens", {
   expiresAt: timestamp("expiresAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
+
+// ─── DIGNITY SCORES (Composite Metric — daily snapshots) ─────────────
+export const dignityScores = mysqlTable("dignity_scores", {
+  id: int("id").autoincrement().primaryKey(),
+  profileId: int("profileId").notNull(),
+  // Five dimensions, each 0-20 points (total 0-100)
+  vampireSlayer: int("vampireSlayer").default(0).notNull(),      // subscriptions cancelled savings
+  nsfShield: int("nsfShield").default(0).notNull(),              // NSF fees avoided/waived
+  budgetMastery: int("budgetMastery").default(0).notNull(),      // budget adherence
+  milkMoneyTrust: int("milkMoneyTrust").default(0).notNull(),    // Milk Money repayment record
+  engagement: int("engagement").default(0).notNull(),            // app usage, promises kept
+  totalScore: int("totalScore").default(0).notNull(),            // sum of all dimensions
+  tier: varchar("tier", { length: 32 }).default("starting_out").notNull(),
+  snapshotDate: timestamp("snapshotDate").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+// ─── PROMISES (PTK Genie — bidirectional promise tracking) ───────────
+export const promises = mysqlTable("promises", {
+  id: int("id").autoincrement().primaryKey(),
+  profileId: int("profileId").notNull(),
+  direction: mysqlEnum("direction", ["made_by_ruby", "made_to_ruby"]).notNull(),
+  description: text("description").notNull(),
+  category: varchar("category", { length: 64 }).default("general").notNull(),
+  // Commitment confidence: 0-100 (casual remark vs real commitment)
+  commitmentScore: int("commitmentScore").default(50).notNull(),
+  status: mysqlEnum("status", ["active", "completed", "broken", "expired", "dormant"]).default("active").notNull(),
+  dueDate: timestamp("dueDate"),
+  completedAt: timestamp("completedAt"),
+  // Willingness meter: mirrors Ruby's energy (1-5)
+  willingnessLevel: int("willingnessLevel").default(3).notNull(),
+  nudgeCount: int("nudgeCount").default(0).notNull(),
+  lastNudgedAt: timestamp("lastNudgedAt"),
+  source: varchar("source", { length: 64 }).default("conversation").notNull(), // conversation, manual, grace_detected
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+// ─── DESTINY DISCOVERY (30 Questions Journey) ────────────────────────
+export const destinyAnswers = mysqlTable("destiny_answers", {
+  id: int("id").autoincrement().primaryKey(),
+  profileId: int("profileId").notNull(),
+  questionNumber: int("questionNumber").notNull(),         // 1-30
+  wave: mysqlEnum("wave", ["safe", "reflective", "deep"]).notNull(),
+  question: text("question").notNull(),
+  answer: text("answer"),
+  askedAt: timestamp("askedAt").defaultNow().notNull(),
+  answeredAt: timestamp("answeredAt"),
+  // Grace's readiness assessment before asking
+  readinessScore: int("readinessScore").default(0),        // 0-100
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export const destinySynthesis = mysqlTable("destiny_synthesis", {
+  id: int("id").autoincrement().primaryKey(),
+  profileId: int("profileId").notNull().unique(),
+  coreValues: text("coreValues"),
+  strengths: text("strengths"),
+  purpose: text("purpose"),
+  moonshot: text("moonshot"),
+  synthesisText: text("synthesisText"),                    // full narrative
+  isRevealed: boolean("isRevealed").default(false).notNull(),
+  revealedAt: timestamp("revealedAt"),
+  lastUpdatedAt: timestamp("lastUpdatedAt").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+// ─── STORIES (Jolene the Journalist) ─────────────────────────────────
+export const stories = mysqlTable("stories", {
+  id: int("id").autoincrement().primaryKey(),
+  profileId: int("profileId").notNull(),
+  title: varchar("title", { length: 256 }).notNull(),
+  storyType: mysqlEnum("storyType", ["moment", "feature"]).default("moment").notNull(), // 500 or 1250 words
+  content: text("content").notNull(),
+  // Jolene Protocol grading
+  grade: varchar("grade", { length: 4 }),                  // A+, A, A-, B+, etc.
+  physicalObject: varchar("physicalObject", { length: 256 }),
+  greatQuote: text("greatQuote"),
+  triggerEvent: varchar("triggerEvent", { length: 256 }),   // what triggered the story
+  // Delivery
+  isDelivered: boolean("isDelivered").default(false).notNull(),
+  deliveredAt: timestamp("deliveredAt"),
+  deliveryMethod: mysqlEnum("deliveryMethod", ["grace_read", "self_read"]).default("grace_read"),
+  // Sharing
+  visibility: mysqlEnum("visibility", ["private", "friends", "community"]).default("private").notNull(),
+  isAnonymized: boolean("isAnonymized").default(false),
+  sharedToSocial: boolean("sharedToSocial").default(false),
+  readCount: int("readCount").default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+// ─── VILLAGE AGENTS (AI Village Naming Convention) ───────────────────
+export const villageAgents = mysqlTable("village_agents", {
+  id: int("id").autoincrement().primaryKey(),
+  agentKey: varchar("agentKey", { length: 64 }).notNull().unique(),  // e.g. "jolene_journalist"
+  defaultName: varchar("defaultName", { length: 128 }).notNull(),     // "Jolene the Journalist"
+  tradeName: varchar("tradeName", { length: 128 }).notNull(),         // "Journalist"
+  category: mysqlEnum("category", ["inner_circle", "specialist", "creative_studio"]).notNull(),
+  personality: text("personality"),
+  description: text("description"),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export const agentIntroductions = mysqlTable("agent_introductions", {
+  id: int("id").autoincrement().primaryKey(),
+  profileId: int("profileId").notNull(),
+  agentId: int("agentId").notNull(),
+  introducedAt: timestamp("introducedAt").defaultNow().notNull(),
+  customName: varchar("customName", { length: 128 }),                 // Ruby's rename
+  renamedAt: timestamp("renamedAt"),
+  interactionCount: int("interactionCount").default(0).notNull(),
+});

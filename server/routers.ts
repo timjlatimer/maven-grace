@@ -1025,6 +1025,395 @@ MOOD: [uplifting/warm/empowering]
         return { success: true };
       }),
   }),
+
+  // ─── DIGNITY SCORE ──────────────────────────────────────────────
+  dignity: router({
+    calculate: protectedProcedure
+      .input(z.object({ profileId: z.number() }))
+      .mutation(async ({ input }) => {
+        return db.calculateDignityScore(input.profileId);
+      }),
+    getLatest: protectedProcedure
+      .input(z.object({ profileId: z.number() }))
+      .query(async ({ input }) => {
+        return db.getLatestDignityScore(input.profileId);
+      }),
+    getHistory: protectedProcedure
+      .input(z.object({ profileId: z.number(), limit: z.number().optional() }))
+      .query(async ({ input }) => {
+        return db.getDignityScoreHistory(input.profileId, input.limit);
+      }),
+  }),
+
+  // ─── PROMISES TO KEEP (PTK Genie) ─────────────────────────────
+  promises: router({
+    create: protectedProcedure
+      .input(z.object({
+        profileId: z.number(),
+        direction: z.enum(['made_by_ruby', 'made_to_ruby']),
+        description: z.string().min(1),
+        category: z.string().optional(),
+        commitmentScore: z.number().min(0).max(100).optional(),
+        dueDate: z.string().optional(),
+        source: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        return db.createPromise({
+          profileId: input.profileId,
+          direction: input.direction,
+          description: input.description,
+          category: input.category || 'general',
+          commitmentScore: input.commitmentScore || 50,
+          dueDate: input.dueDate ? new Date(input.dueDate) : undefined,
+          source: input.source || 'manual',
+        });
+      }),
+    list: protectedProcedure
+      .input(z.object({ profileId: z.number(), status: z.string().optional() }))
+      .query(async ({ input }) => {
+        return db.getPromises(input.profileId, input.status);
+      }),
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        status: z.enum(['active', 'completed', 'broken', 'expired', 'dormant']).optional(),
+        willingnessLevel: z.number().min(1).max(5).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const data: any = {};
+        if (input.status) {
+          data.status = input.status;
+          if (input.status === 'completed') data.completedAt = new Date();
+        }
+        if (input.willingnessLevel) data.willingnessLevel = input.willingnessLevel;
+        await db.updatePromise(input.id, data);
+        return { success: true };
+      }),
+    stats: protectedProcedure
+      .input(z.object({ profileId: z.number() }))
+      .query(async ({ input }) => {
+        return db.getPromiseStats(input.profileId);
+      }),
+    detect: protectedProcedure
+      .input(z.object({ profileId: z.number(), message: z.string() }))
+      .mutation(async ({ input }) => {
+        // Use LLM to detect promises in conversation
+        const response = await invokeLLM({
+          messages: [
+            { role: 'system', content: `You detect promises and commitments in conversation. Analyze the message and extract any promises. Return JSON: { "promises": [{ "description": string, "direction": "made_by_ruby" | "made_to_ruby", "category": string, "commitmentScore": number (0-100, how firm is this commitment), "dueDate": string|null }] }. Categories: payment, personal, family, health, career, education, general. Only include real commitments, not casual remarks. Score below 30 means casual mention, 30-60 is soft commitment, 60+ is firm promise.` },
+            { role: 'user', content: input.message },
+          ],
+          response_format: {
+            type: 'json_schema',
+            json_schema: {
+              name: 'promise_detection',
+              strict: true,
+              schema: {
+                type: 'object',
+                properties: {
+                  promises: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        description: { type: 'string' },
+                        direction: { type: 'string', enum: ['made_by_ruby', 'made_to_ruby'] },
+                        category: { type: 'string' },
+                        commitmentScore: { type: 'number' },
+                        dueDate: { type: ['string', 'null'] },
+                      },
+                      required: ['description', 'direction', 'category', 'commitmentScore', 'dueDate'],
+                      additionalProperties: false,
+                    },
+                  },
+                },
+                required: ['promises'],
+                additionalProperties: false,
+              },
+            },
+          },
+        });
+        const parsed = JSON.parse(String(response.choices[0].message.content) || '{ "promises": [] }');
+        // Only save promises with commitment score >= 30
+        const saved = [];
+        for (const p of parsed.promises) {
+          if (p.commitmentScore >= 30) {
+            const result = await db.createPromise({
+              profileId: input.profileId,
+              direction: p.direction,
+              description: p.description,
+              category: p.category,
+              commitmentScore: p.commitmentScore,
+              dueDate: p.dueDate ? new Date(p.dueDate) : undefined,
+              source: 'conversation',
+            });
+            saved.push({ ...p, id: result?.id });
+          }
+        }
+        return { detected: parsed.promises, saved };
+      }),
+  }),
+
+  // ─── DESTINY DISCOVERY ────────────────────────────────────────
+  destiny: router({
+    getProgress: protectedProcedure
+      .input(z.object({ profileId: z.number() }))
+      .query(async ({ input }) => {
+        return db.getDestinyProgress(input.profileId);
+      }),
+    getAnswers: protectedProcedure
+      .input(z.object({ profileId: z.number() }))
+      .query(async ({ input }) => {
+        return db.getDestinyAnswers(input.profileId);
+      }),
+    askQuestion: protectedProcedure
+      .input(z.object({ profileId: z.number() }))
+      .mutation(async ({ input }) => {
+        const progress = await db.getDestinyProgress(input.profileId);
+        const answers = await db.getDestinyAnswers(input.profileId);
+        const answeredNums = new Set(answers.filter(a => a.answer).map(a => a.questionNumber));
+        // Find next unanswered question
+        const DESTINY_QUESTIONS = getDestinyQuestions();
+        const nextQ = DESTINY_QUESTIONS.find(q => !answeredNums.has(q.number));
+        if (!nextQ) return { complete: true, question: null };
+        // Save the question as asked
+        await db.addDestinyAnswer({
+          profileId: input.profileId,
+          questionNumber: nextQ.number,
+          wave: nextQ.wave as any,
+          question: nextQ.question,
+        });
+        return { complete: false, question: nextQ };
+      }),
+    answerQuestion: protectedProcedure
+      .input(z.object({ profileId: z.number(), questionNumber: z.number(), answer: z.string() }))
+      .mutation(async ({ input }) => {
+        const answers = await db.getDestinyAnswers(input.profileId);
+        const existing = answers.find(a => a.questionNumber === input.questionNumber);
+        if (!existing) return { success: false, error: 'Question not found' };
+        await db.updatePromise(existing.id, { } as any); // placeholder
+        // Actually update the destiny answer
+        const dbConn = await db.getDb();
+        if (dbConn) {
+          const { destinyAnswers: da } = await import('../drizzle/schema');
+          const { eq } = await import('drizzle-orm');
+          await dbConn.update(da).set({ answer: input.answer, answeredAt: new Date() }).where(eq(da.id, existing.id));
+        }
+        // Check if synthesis should be generated
+        const progress = await db.getDestinyProgress(input.profileId);
+        if (progress.answered >= 10) {
+          // Generate/update synthesis using LLM
+          const allAnswers = await db.getDestinyAnswers(input.profileId);
+          const answeredOnes = allAnswers.filter(a => a.answer);
+          const synthesisPrompt = answeredOnes.map(a => `Q${a.questionNumber}: ${a.question}\nA: ${a.answer}`).join('\n\n');
+          const response = await invokeLLM({
+            messages: [
+              { role: 'system', content: `You are a destiny coach. Based on the answers below, synthesize Ruby's core values, strengths, purpose, and moonshot dream. Be warm, specific, and empowering. Return JSON: { "coreValues": string, "strengths": string, "purpose": string, "moonshot": string, "synthesisText": string }. The synthesisText should be a warm, narrative paragraph that weaves everything together.` },
+              { role: 'user', content: synthesisPrompt },
+            ],
+            response_format: {
+              type: 'json_schema',
+              json_schema: {
+                name: 'destiny_synthesis',
+                strict: true,
+                schema: {
+                  type: 'object',
+                  properties: {
+                    coreValues: { type: 'string' },
+                    strengths: { type: 'string' },
+                    purpose: { type: 'string' },
+                    moonshot: { type: 'string' },
+                    synthesisText: { type: 'string' },
+                  },
+                  required: ['coreValues', 'strengths', 'purpose', 'moonshot', 'synthesisText'],
+                  additionalProperties: false,
+                },
+              },
+            },
+          });
+          const synthesis = JSON.parse(String(response.choices[0].message.content) || '{}');
+          await db.upsertDestinySynthesis(input.profileId, synthesis);
+        }
+        return { success: true, progress };
+      }),
+    getSynthesis: protectedProcedure
+      .input(z.object({ profileId: z.number() }))
+      .query(async ({ input }) => {
+        return db.getDestinySynthesis(input.profileId);
+      }),
+    revealSynthesis: protectedProcedure
+      .input(z.object({ profileId: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.upsertDestinySynthesis(input.profileId, { isRevealed: true, revealedAt: new Date() });
+        return { success: true };
+      }),
+  }),
+
+  // ─── STORIES (Jolene the Journalist) ──────────────────────────
+  stories: router({
+    generate: protectedProcedure
+      .input(z.object({ profileId: z.number(), triggerEvent: z.string().optional() }))
+      .mutation(async ({ input }) => {
+        // Gather Ruby's context for story generation
+        const profile = await db.getProfileById(input.profileId);
+        const memories = await db.getMemories(input.profileId);
+        const impacts = await db.getFinancialImpacts(input.profileId);
+        const promisesList = await db.getPromises(input.profileId, 'completed');
+
+        const context = [
+          profile ? `Name: ${profile.firstName}` : '',
+          memories.length > 0 ? `Memories: ${memories.map(m => m.fact).join('; ')}` : '',
+          impacts.length > 0 ? `Financial wins: ${impacts.slice(0, 5).map(i => i.description).join('; ')}` : '',
+          promisesList.length > 0 ? `Promises kept: ${promisesList.slice(0, 5).map(p => p.description).join('; ')}` : '',
+          input.triggerEvent ? `Trigger event: ${input.triggerEvent}` : '',
+        ].filter(Boolean).join('\n');
+
+        const response = await invokeLLM({
+          messages: [
+            { role: 'system', content: `You are Jolene the Journalist, following the Jolene Protocol for narrative journalism. Write a 500-word story ("moment" type) about Ruby's life. RULES:\n1. Open with a PHYSICAL OBJECT that carries the weight of the theme\n2. Include ONE great quote (real or reconstructed)\n3. Show restraint — no sentimentality, let the facts carry the emotion\n4. Include a TURN at the 60% mark — a shift, a revelation, a complication\n5. End with a KICKER that calls back to the opening object\n6. Write in third person, present tense\n7. No marketing language, no asks\n8. Grade yourself: only ship A- or above\n\nReturn JSON: { "title": string, "content": string, "physicalObject": string, "greatQuote": string, "grade": string }` },
+            { role: 'user', content: `Write a story about this person:\n${context}` },
+          ],
+          response_format: {
+            type: 'json_schema',
+            json_schema: {
+              name: 'jolene_story',
+              strict: true,
+              schema: {
+                type: 'object',
+                properties: {
+                  title: { type: 'string' },
+                  content: { type: 'string' },
+                  physicalObject: { type: 'string' },
+                  greatQuote: { type: 'string' },
+                  grade: { type: 'string' },
+                },
+                required: ['title', 'content', 'physicalObject', 'greatQuote', 'grade'],
+                additionalProperties: false,
+              },
+            },
+          },
+        });
+        const story = JSON.parse(String(response.choices[0].message.content) || '{}');
+        const result = await db.createStory({
+          profileId: input.profileId,
+          title: story.title,
+          storyType: 'moment',
+          content: story.content,
+          grade: story.grade,
+          physicalObject: story.physicalObject,
+          greatQuote: story.greatQuote,
+          triggerEvent: input.triggerEvent || 'manual',
+        });
+        return { id: result?.id, ...story };
+      }),
+    list: protectedProcedure
+      .input(z.object({ profileId: z.number() }))
+      .query(async ({ input }) => {
+        return db.getStories(input.profileId);
+      }),
+    get: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        return db.getStoryById(input.id);
+      }),
+    deliver: protectedProcedure
+      .input(z.object({ id: z.number(), method: z.enum(['grace_read', 'self_read']) }))
+      .mutation(async ({ input }) => {
+        await db.updateStory(input.id, { isDelivered: true, deliveredAt: new Date(), deliveryMethod: input.method });
+        return { success: true };
+      }),
+    updateVisibility: protectedProcedure
+      .input(z.object({ id: z.number(), visibility: z.enum(['private', 'friends', 'community']), isAnonymized: z.boolean().optional() }))
+      .mutation(async ({ input }) => {
+        await db.updateStory(input.id, { visibility: input.visibility, isAnonymized: input.isAnonymized });
+        return { success: true };
+      }),
+    community: publicProcedure
+      .query(async () => {
+        return db.getCommunityStories();
+      }),
+  }),
+
+  // ─── VILLAGE (AI Village Naming Convention) ────────────────────
+  village: router({
+    allAgents: publicProcedure
+      .query(async () => {
+        return db.getAllVillageAgents();
+      }),
+    myAgents: protectedProcedure
+      .input(z.object({ profileId: z.number() }))
+      .query(async ({ input }) => {
+        return db.getIntroducedAgents(input.profileId);
+      }),
+    introduce: protectedProcedure
+      .input(z.object({ profileId: z.number(), agentKey: z.string() }))
+      .mutation(async ({ input }) => {
+        const agent = await db.getAgentByKey(input.agentKey);
+        if (!agent) throw new TRPCError({ code: 'NOT_FOUND', message: 'Agent not found' });
+        return db.introduceAgent(input.profileId, agent.id);
+      }),
+    rename: protectedProcedure
+      .input(z.object({ profileId: z.number(), agentKey: z.string(), customName: z.string().min(1) }))
+      .mutation(async ({ input }) => {
+        const agent = await db.getAgentByKey(input.agentKey);
+        if (!agent) throw new TRPCError({ code: 'NOT_FOUND', message: 'Agent not found' });
+        await db.renameAgent(input.profileId, agent.id, input.customName);
+        return { success: true };
+      }),
+  }),
+
+  // ─── MILK MONEY NUDGES ────────────────────────────────────────
+  milkMoneyNudges: router({
+    getUpcoming: protectedProcedure
+      .input(z.object({ profileId: z.number() }))
+      .query(async ({ input }) => {
+        return db.getUpcomingBorrows(input.profileId);
+      }),
+    getOverdue: protectedProcedure
+      .input(z.object({ profileId: z.number() }))
+      .query(async ({ input }) => {
+        return db.getOverdueBorrows(input.profileId);
+      }),
+  }),
 });
+
+// ─── DESTINY QUESTIONS (30 Questions, 3 Waves) ──────────────────────
+function getDestinyQuestions() {
+  return [
+    // Wave 1: Safe (Questions 1-10)
+    { number: 1, wave: 'safe', question: "Where did you grow up?" },
+    { number: 2, wave: 'safe', question: "What's the first job you ever had?" },
+    { number: 3, wave: 'safe', question: "Who made you laugh the most when you were a kid?" },
+    { number: 4, wave: 'safe', question: "What's something you're really good at that most people don't know about?" },
+    { number: 5, wave: 'safe', question: "If you had a whole Saturday with no responsibilities, what would you do?" },
+    { number: 6, wave: 'safe', question: "What's the best meal anyone ever made for you?" },
+    { number: 7, wave: 'safe', question: "What song always makes you feel something?" },
+    { number: 8, wave: 'safe', question: "What's something you used to love doing but stopped?" },
+    { number: 9, wave: 'safe', question: "Who do you call when things get real?" },
+    { number: 10, wave: 'safe', question: "What's one thing about your neighborhood that you actually love?" },
+    // Wave 2: Reflective (Questions 11-20)
+    { number: 11, wave: 'reflective', question: "What's the hardest thing you've ever had to figure out on your own?" },
+    { number: 12, wave: 'reflective', question: "When you were little, what did you want to be when you grew up?" },
+    { number: 13, wave: 'reflective', question: "What's something you're proud of that nobody gave you credit for?" },
+    { number: 14, wave: 'reflective', question: "If your kids asked you what matters most in life, what would you say?" },
+    { number: 15, wave: 'reflective', question: "What's a mistake you made that actually taught you something important?" },
+    { number: 16, wave: 'reflective', question: "When do you feel most like yourself?" },
+    { number: 17, wave: 'reflective', question: "What's something about the world that makes you angry enough to want to change it?" },
+    { number: 18, wave: 'reflective', question: "Who believed in you when nobody else did?" },
+    { number: 19, wave: 'reflective', question: "What would you do differently if money wasn't a factor?" },
+    { number: 20, wave: 'reflective', question: "What's a promise you made to yourself that you haven't kept yet?" },
+    // Wave 3: Deep (Questions 21-30)
+    { number: 21, wave: 'deep', question: "What do you think you were put on this earth to do?" },
+    { number: 22, wave: 'deep', question: "If you could go back and tell your younger self one thing, what would it be?" },
+    { number: 23, wave: 'deep', question: "What's the bravest thing you've ever done?" },
+    { number: 24, wave: 'deep', question: "What keeps you up at night?" },
+    { number: 25, wave: 'deep', question: "What would your life look like if everything went right for the next five years?" },
+    { number: 26, wave: 'deep', question: "What's something you've never told anyone?" },
+    { number: 27, wave: 'deep', question: "If you could change one thing about how the world treats people like you, what would it be?" },
+    { number: 28, wave: 'deep', question: "What legacy do you want to leave for your kids?" },
+    { number: 29, wave: 'deep', question: "What's your moonshot — the big dream you barely let yourself think about?" },
+    { number: 30, wave: 'deep', question: "If I told you that you already have everything you need to get there, what would you say?" },
+  ];
+}
 
 export type AppRouter = typeof appRouter;

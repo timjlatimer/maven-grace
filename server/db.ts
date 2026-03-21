@@ -469,3 +469,284 @@ export async function getAdminStats() {
     membershipsByTier: membershipCounts.reduce((acc, m) => ({ ...acc, [m.tier]: Number(m.count) }), {} as Record<string, number>),
   };
 }
+
+
+// ══════════════════════════════════════════════════════════════════════
+// RACE 5 — Dignity Score, PTK, Destiny, Journalist, Village
+// ══════════════════════════════════════════════════════════════════════
+
+import {
+  dignityScores, promises, destinyAnswers, destinySynthesis,
+  stories, villageAgents, agentIntroductions
+} from "../drizzle/schema";
+
+// ─── DIGNITY SCORES ──────────────────────────────────────────────────
+
+export async function calculateDignityScore(profileId: number) {
+  const db = await getDb();
+  if (!db) return null;
+
+  // Vampire Slayer dimension (0-20): based on subscriptions cancelled
+  const [cancelledSubs] = await db.select({ count: sql<number>`count(*)` }).from(subscriptions)
+    .where(and(eq(subscriptions.profileId, profileId), eq(subscriptions.status, 'cancelled')));
+  const vampireSlayer = Math.min(20, (Number(cancelledSubs?.count || 0)) * 5);
+
+  // NSF Shield dimension (0-20): based on NSF fees waived
+  const [waivedFees] = await db.select({ count: sql<number>`count(*)` }).from(bills)
+    .where(and(eq(bills.profileId, profileId), eq(bills.nsfFeeWaived, true)));
+  const nsfShield = Math.min(20, (Number(waivedFees?.count || 0)) * 7);
+
+  // Budget Mastery dimension (0-20): based on budget entries and paycheck tracking
+  const [budgetCount] = await db.select({ count: sql<number>`count(*)` }).from(budgetEntries)
+    .where(eq(budgetEntries.profileId, profileId));
+  const [paycheckExists] = await db.select({ count: sql<number>`count(*)` }).from(paychecks)
+    .where(eq(paychecks.profileId, profileId));
+  const budgetMastery = Math.min(20, (Number(budgetCount?.count || 0) > 0 ? 10 : 0) + (Number(paycheckExists?.count || 0) > 0 ? 10 : 0));
+
+  // Milk Money Trust dimension (0-20): based on trust score
+  const mmAccount = await getMilkMoneyAccount(profileId);
+  const milkMoneyTrust = mmAccount ? Math.min(20, Math.round(mmAccount.trustScore / 5)) : 0;
+
+  // Engagement dimension (0-20): conversations + promises kept
+  const [convCount] = await db.select({ count: sql<number>`count(*)` }).from(graceConversations)
+    .where(eq(graceConversations.profileId, profileId));
+  const [promisesKept] = await db.select({ count: sql<number>`count(*)` }).from(promises)
+    .where(and(eq(promises.profileId, profileId), eq(promises.status, 'completed')));
+  const engagement = Math.min(20, Math.min(10, Number(convCount?.count || 0)) + Math.min(10, (Number(promisesKept?.count || 0)) * 2));
+
+  const totalScore = vampireSlayer + nsfShield + budgetMastery + milkMoneyTrust + engagement;
+
+  // Determine tier
+  let tier = "starting_out";
+  if (totalScore >= 80) tier = "dignity_achieved";
+  else if (totalScore >= 60) tier = "rising_strong";
+  else if (totalScore >= 40) tier = "building_momentum";
+  else if (totalScore >= 20) tier = "finding_footing";
+
+  // Save snapshot
+  await db.insert(dignityScores).values({
+    profileId, vampireSlayer, nsfShield, budgetMastery, milkMoneyTrust, engagement, totalScore, tier
+  });
+
+  return { vampireSlayer, nsfShield, budgetMastery, milkMoneyTrust, engagement, totalScore, tier };
+}
+
+export async function getLatestDignityScore(profileId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(dignityScores)
+    .where(eq(dignityScores.profileId, profileId))
+    .orderBy(desc(dignityScores.createdAt)).limit(1);
+  return result[0] || null;
+}
+
+export async function getDignityScoreHistory(profileId: number, limit = 30) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(dignityScores)
+    .where(eq(dignityScores.profileId, profileId))
+    .orderBy(desc(dignityScores.createdAt)).limit(limit);
+}
+
+// ─── PROMISES (PTK Genie) ────────────────────────────────────────────
+
+export async function createPromise(data: typeof promises.$inferInsert) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.insert(promises).values(data);
+  return { id: result[0].insertId };
+}
+
+export async function getPromises(profileId: number, status?: string) {
+  const db = await getDb();
+  if (!db) return [];
+  if (status) {
+    return db.select().from(promises)
+      .where(and(eq(promises.profileId, profileId), eq(promises.status, status as any)))
+      .orderBy(desc(promises.createdAt));
+  }
+  return db.select().from(promises)
+    .where(eq(promises.profileId, profileId))
+    .orderBy(desc(promises.createdAt));
+}
+
+export async function updatePromise(id: number, data: Partial<typeof promises.$inferInsert>) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(promises).set(data).where(eq(promises.id, id));
+}
+
+export async function getPromiseStats(profileId: number) {
+  const db = await getDb();
+  if (!db) return { active: 0, completed: 0, broken: 0 };
+  const [active] = await db.select({ count: sql<number>`count(*)` }).from(promises)
+    .where(and(eq(promises.profileId, profileId), eq(promises.status, 'active')));
+  const [completed] = await db.select({ count: sql<number>`count(*)` }).from(promises)
+    .where(and(eq(promises.profileId, profileId), eq(promises.status, 'completed')));
+  const [broken] = await db.select({ count: sql<number>`count(*)` }).from(promises)
+    .where(and(eq(promises.profileId, profileId), eq(promises.status, 'broken')));
+  return {
+    active: Number(active?.count || 0),
+    completed: Number(completed?.count || 0),
+    broken: Number(broken?.count || 0),
+  };
+}
+
+// ─── DESTINY DISCOVERY ───────────────────────────────────────────────
+
+export async function addDestinyAnswer(data: typeof destinyAnswers.$inferInsert) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.insert(destinyAnswers).values(data);
+  return { id: result[0].insertId };
+}
+
+export async function getDestinyAnswers(profileId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(destinyAnswers)
+    .where(eq(destinyAnswers.profileId, profileId))
+    .orderBy(destinyAnswers.questionNumber);
+}
+
+export async function getDestinyProgress(profileId: number) {
+  const db = await getDb();
+  if (!db) return { answered: 0, total: 30, currentWave: 'safe' as const };
+  const answers = await db.select().from(destinyAnswers)
+    .where(and(eq(destinyAnswers.profileId, profileId), sql`answer IS NOT NULL`));
+  const answered = answers.length;
+  let currentWave: 'safe' | 'reflective' | 'deep' = 'safe';
+  if (answered >= 20) currentWave = 'deep';
+  else if (answered >= 10) currentWave = 'reflective';
+  return { answered, total: 30, currentWave };
+}
+
+export async function upsertDestinySynthesis(profileId: number, data: Partial<typeof destinySynthesis.$inferInsert>) {
+  const db = await getDb();
+  if (!db) return;
+  const existing = await db.select().from(destinySynthesis).where(eq(destinySynthesis.profileId, profileId)).limit(1);
+  if (existing.length > 0) {
+    await db.update(destinySynthesis).set({ ...data, lastUpdatedAt: new Date() }).where(eq(destinySynthesis.profileId, profileId));
+  } else {
+    await db.insert(destinySynthesis).values({ profileId, ...data } as any);
+  }
+}
+
+export async function getDestinySynthesis(profileId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(destinySynthesis).where(eq(destinySynthesis.profileId, profileId)).limit(1);
+  return result[0] || null;
+}
+
+// ─── STORIES (Jolene the Journalist) ─────────────────────────────────
+
+export async function createStory(data: typeof stories.$inferInsert) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.insert(stories).values(data);
+  return { id: result[0].insertId };
+}
+
+export async function getStories(profileId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(stories)
+    .where(eq(stories.profileId, profileId))
+    .orderBy(desc(stories.createdAt));
+}
+
+export async function getStoryById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(stories).where(eq(stories.id, id)).limit(1);
+  return result[0] || null;
+}
+
+export async function updateStory(id: number, data: Partial<typeof stories.$inferInsert>) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(stories).set(data).where(eq(stories.id, id));
+}
+
+export async function getCommunityStories(limit = 20) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(stories)
+    .where(eq(stories.visibility, 'community'))
+    .orderBy(desc(stories.createdAt)).limit(limit);
+}
+
+// ─── VILLAGE AGENTS ──────────────────────────────────────────────────
+
+export async function getAllVillageAgents() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(villageAgents).where(eq(villageAgents.isActive, true));
+}
+
+export async function getAgentByKey(agentKey: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(villageAgents).where(eq(villageAgents.agentKey, agentKey)).limit(1);
+  return result[0] || null;
+}
+
+export async function getIntroducedAgents(profileId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select({
+    introduction: agentIntroductions,
+    agent: villageAgents,
+  }).from(agentIntroductions)
+    .innerJoin(villageAgents, eq(agentIntroductions.agentId, villageAgents.id))
+    .where(eq(agentIntroductions.profileId, profileId));
+}
+
+export async function introduceAgent(profileId: number, agentId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.insert(agentIntroductions).values({ profileId, agentId });
+  return { id: result[0].insertId };
+}
+
+export async function renameAgent(profileId: number, agentId: number, customName: string) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(agentIntroductions).set({ customName, renamedAt: new Date() })
+    .where(and(eq(agentIntroductions.profileId, profileId), eq(agentIntroductions.agentId, agentId)));
+}
+
+export async function incrementAgentInteraction(profileId: number, agentId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(agentIntroductions)
+    .set({ interactionCount: sql`interactionCount + 1` })
+    .where(and(eq(agentIntroductions.profileId, profileId), eq(agentIntroductions.agentId, agentId)));
+}
+
+// ─── MILK MONEY NUDGES ──────────────────────────────────────────────
+
+export async function getOverdueBorrows(profileId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(milkMoneyTransactions)
+    .where(and(
+      eq(milkMoneyTransactions.profileId, profileId),
+      eq(milkMoneyTransactions.type, 'borrow'),
+      sql`repaidAt IS NULL`,
+      sql`dueDate < NOW()`
+    ));
+}
+
+export async function getUpcomingBorrows(profileId: number, daysAhead = 3) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(milkMoneyTransactions)
+    .where(and(
+      eq(milkMoneyTransactions.profileId, profileId),
+      eq(milkMoneyTransactions.type, 'borrow'),
+      sql`repaidAt IS NULL`,
+      sql`dueDate BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL ${daysAhead} DAY)`
+    ));
+}

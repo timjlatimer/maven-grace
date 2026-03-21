@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation, Link } from "wouter";
-import { Home, MessageCircle, Shield, TrendingUp, Map, Package, Wallet, Calendar, Milk, MoreHorizontal, X, Music } from "lucide-react";
+import { Home, MessageCircle, Shield, TrendingUp, Map, Package, Wallet, Calendar, Milk, MoreHorizontal, X, Music, Star, Heart, Compass, BookOpen, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const primaryNav = [
@@ -17,6 +17,11 @@ const moreNav = [
   { path: "/bills", icon: Calendar, label: "Bills" },
   { path: "/milk-money", icon: Milk, label: "Milk Money" },
   { path: "/song", icon: Music, label: "My Song" },
+  { path: "/dignity", icon: Star, label: "Dignity" },
+  { path: "/promises", icon: Heart, label: "Promises" },
+  { path: "/destiny", icon: Compass, label: "Destiny" },
+  { path: "/stories", icon: BookOpen, label: "Stories" },
+  { path: "/village", icon: Users, label: "Village" },
 ];
 
 export default function BottomNav() {
