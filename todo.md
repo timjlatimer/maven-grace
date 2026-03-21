@@ -97,3 +97,34 @@
 - [x] Update gap analysis with suggestion triage system
 - [x] Create Race 3 input package and commit to GitHub (commit 42d1e23)
 - [x] Checkpoint and deploy
+
+## Race 3 — Full Build Sprint (Mar 21, 2026)
+
+### Suggestion Triage (pre-race)
+- [x] Stripe subscription tiers → P0-001 in gap analysis (confirmed, building Race 3)
+- [x] Voice input for Ruby Red → Added to gap analysis + building Race 3
+- [x] Gift Anthem Dedication → P0-002 in gap analysis (confirmed, building Race 3)
+
+### P0 — Critical Path
+- [ ] Stripe: Observer/Essentials/Plus tiers (placeholder if Stripe MCP unavailable)
+- [ ] Stripe: membership status shown in app, Grace knows tier
+- [ ] Voice Input: browser mic capture → Whisper transcription → Grace responds
+- [ ] Voice Input: mic button in Grace Chat alongside send button
+- [ ] Gift Anthem Dedication: shareable song link page (/song/share/:token)
+- [ ] Gift Anthem Dedication: "Send to a friend" button on Song Moment
+- [ ] Gift Anthem Dedication: recipient landing page with song + join CTA
+
+### P1 — High Value
+- [ ] Budget Builder: income/expense tracker, category breakdown
+- [ ] Budget Builder: paycheck-to-paycheck planner with next payday countdown
+- [ ] Bill Tracker: bills by due date, days-until-due alerts
+- [ ] NSF Fee Fighter: risk alert when balance likely to go negative, dispute script
+- [ ] Milk Money: graduated trust tiers ($20→$50→$100→$150)
+- [ ] Milk Money: repayment tracking, tier progression
+
+### P2 — Admin + Polish
+- [ ] Admin Dashboard: member counts, financial lift totals, Grace health
+- [ ] Admin Dashboard: protected by admin role
+- [ ] Update gap analysis with Race 3 results
+- [ ] All new features covered by vitest
+- [ ] Deploy to live URL

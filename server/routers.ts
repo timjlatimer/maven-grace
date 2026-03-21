@@ -1,5 +1,8 @@
 import { COOKIE_NAME } from "@shared/const";
 import { textToSpeech, isKieAiConfigured } from "./kieai";
+import { transcribeAudio } from "./_core/voiceTranscription";
+import { storagePut } from "./storage";
+import { TRPCError } from "@trpc/server";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
@@ -583,6 +586,30 @@ MOOD: [uplifting/warm/empowering]
       }),
 
     /**
+     * Transcribe audio to text using Whisper.
+     * Accepts base64-encoded audio from the browser.
+     * Uploads to S3 first, then calls Whisper transcription.
+     */
+    transcribe: publicProcedure
+      .input(z.object({
+        audioBase64: z.string(),
+        mimeType: z.string().default("audio/webm"),
+      }))
+      .mutation(async ({ input }) => {
+        // Upload audio to S3 so Whisper can fetch it by URL
+        const audioBuffer = Buffer.from(input.audioBase64, "base64");
+        const key = `voice-input/${Date.now()}-${Math.random().toString(36).slice(2)}.webm`;
+        const { url: audioUrl } = await storagePut(key, audioBuffer, input.mimeType);
+
+        const result = await transcribeAudio({ audioUrl, language: "en", prompt: "Transcribe this voice message from a Maven member talking to Grace." });
+
+        if ("error" in result) {
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: result.error });
+        }
+        return { text: result.text, language: result.language };
+      }),
+
+    /**
      * Health check — confirms KIE.AI credentials are present.
      * Does NOT make a real API call (no cost, no latency).
      */
@@ -592,6 +619,237 @@ MOOD: [uplifting/warm/empowering]
       model: "elevenlabs/text-to-speech-multilingual-v2",
       voice: "Maria (hpp4J3VqNfWAUOO0d1Us)",
     })),
+  }),
+
+  // ─── MAVEN MEMBERSHIPS ────────────────────────────────────────────
+  membership: router({
+    get: publicProcedure
+      .input(z.object({ profileId: z.number() }))
+      .query(async ({ input }) => {
+        return db.getMembership(input.profileId);
+      }),
+
+    upsert: publicProcedure
+      .input(z.object({
+        profileId: z.number(),
+        tier: z.enum(['observer', 'essentials', 'plus']),
+        deliveryAddress: z.string().optional(),
+        deliveryPostalCode: z.string().optional(),
+        deliveryNotes: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const weeklyAmountCents = input.tier === 'essentials' ? 599 : input.tier === 'plus' ? 1099 : 0;
+        const membership = await db.upsertMembership(input.profileId, {
+          tier: input.tier,
+          status: 'active',
+          weeklyAmountCents,
+          deliveryAddress: input.deliveryAddress,
+          deliveryPostalCode: input.deliveryPostalCode,
+          deliveryNotes: input.deliveryNotes,
+        });
+        return { success: true, membership };
+      }),
+  }),
+
+  // ─── BUDGET BUILDER ──────────────────────────────────────────────
+  budget: router({
+    getEntries: publicProcedure
+      .input(z.object({ profileId: z.number() }))
+      .query(async ({ input }) => {
+        const entries = await db.getBudgetEntries(input.profileId);
+        const paycheck = await db.getPaycheck(input.profileId);
+        const income = entries.filter(e => e.type === 'income').reduce((sum, e) => sum + e.amountCents, 0);
+        const expenses = entries.filter(e => e.type === 'expense').reduce((sum, e) => sum + e.amountCents, 0);
+        return { entries, paycheck, income, expenses, balance: income - expenses };
+      }),
+
+    addEntry: publicProcedure
+      .input(z.object({
+        profileId: z.number(),
+        type: z.enum(['income', 'expense']),
+        category: z.string(),
+        description: z.string(),
+        amountCents: z.number(),
+        frequency: z.enum(['one_time', 'weekly', 'biweekly', 'monthly']).default('monthly'),
+        dueDay: z.number().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const entry = await db.addBudgetEntry(input);
+        return { success: true, entry };
+      }),
+
+    updateEntry: publicProcedure
+      .input(z.object({
+        id: z.number(),
+        data: z.object({
+          description: z.string().optional(),
+          amountCents: z.number().optional(),
+          isPaid: z.boolean().optional(),
+        })
+      }))
+      .mutation(async ({ input }) => {
+        await db.updateBudgetEntry(input.id, input.data);
+        return { success: true };
+      }),
+
+    deleteEntry: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.deleteBudgetEntry(input.id);
+        return { success: true };
+      }),
+
+    setPaycheck: publicProcedure
+      .input(z.object({
+        profileId: z.number(),
+        amountCents: z.number(),
+        frequency: z.enum(['weekly', 'biweekly', 'semimonthly', 'monthly']),
+        nextPayDate: z.string().optional(),
+        employer: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const paycheck = await db.upsertPaycheck(input.profileId, {
+          amountCents: input.amountCents,
+          frequency: input.frequency,
+          nextPayDate: input.nextPayDate ? new Date(input.nextPayDate) : undefined,
+          employer: input.employer,
+        });
+        return { success: true, paycheck };
+      }),
+  }),
+
+  // ─── BILL TRACKER + NSF FEE FIGHTER ─────────────────────────────
+  bills: router({
+    list: publicProcedure
+      .input(z.object({ profileId: z.number() }))
+      .query(async ({ input }) => {
+        return db.getBills(input.profileId);
+      }),
+
+    add: publicProcedure
+      .input(z.object({
+        profileId: z.number(),
+        name: z.string(),
+        amountCents: z.number(),
+        dueDay: z.number(),
+        category: z.string().optional(),
+        isAutoPay: z.boolean().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const bill = await db.addBill(input);
+        return { success: true, bill };
+      }),
+
+    markPaid: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.updateBill(input.id, { isPaid: true, paidAt: new Date() });
+        return { success: true };
+      }),
+
+    flagNsfRisk: publicProcedure
+      .input(z.object({ id: z.number(), profileId: z.number() }))
+      .mutation(async ({ input }) => {
+        // Generate dispute script via LLM
+        const disputeResult = await invokeLLM({
+          messages: [
+            { role: 'system', content: 'You are a consumer rights advocate. Write a short, firm, polite script for calling a bank to dispute an NSF fee. Keep it under 100 words. Be direct.' },
+            { role: 'user', content: 'Write me a script to call my bank and dispute an NSF fee.' }
+          ]
+        });
+        const script = typeof disputeResult.choices[0]?.message?.content === 'string'
+          ? disputeResult.choices[0].message.content
+          : 'Call your bank and say: "I was charged an NSF fee and I would like to request a one-time courtesy waiver. I have been a customer for [X] years and this was an oversight. Can you please reverse this charge?"';
+
+        await db.updateBill(input.id, {
+          nsfRiskFlagged: true,
+          nsfRiskFlaggedAt: new Date(),
+          nsfFeeDisputeScript: script,
+        });
+
+        // Log potential savings
+        await db.addFinancialImpact({
+          profileId: input.profileId,
+          category: 'nsf_avoided',
+          description: 'NSF fee risk flagged — dispute script generated',
+          estimatedValue: 4500, // $45 average NSF fee
+          isEstimated: true,
+          source: 'fee_fighter',
+        });
+
+        return { success: true, script };
+      }),
+
+    delete: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.deleteBill(input.id);
+        return { success: true };
+      }),
+  }),
+
+  // ─── MILK MONEY ──────────────────────────────────────────────────
+  milkMoney: router({
+    getAccount: publicProcedure
+      .input(z.object({ profileId: z.number() }))
+      .query(async ({ input }) => {
+        return db.getMilkMoneyAccount(input.profileId);
+      }),
+
+    openAccount: publicProcedure
+      .input(z.object({ profileId: z.number() }))
+      .mutation(async ({ input }) => {
+        const account = await db.createMilkMoneyAccount(input.profileId);
+        return { success: true, account };
+      }),
+
+    getTransactions: publicProcedure
+      .input(z.object({ profileId: z.number() }))
+      .query(async ({ input }) => {
+        return db.getMilkMoneyTransactions(input.profileId);
+      }),
+  }),
+
+  // ─── ANTHEM SHARE (Gift Anthem Dedication) ───────────────────────
+  anthemShare: router({
+    createToken: publicProcedure
+      .input(z.object({
+        songId: z.number(),
+        senderProfileId: z.number(),
+        recipientName: z.string().optional(),
+        recipientMessage: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const token = await db.createAnthemShareToken(
+          input.songId,
+          input.senderProfileId,
+          input.recipientName,
+          input.recipientMessage
+        );
+        return { success: true, token };
+      }),
+
+    getByToken: publicProcedure
+      .input(z.object({ token: z.string() }))
+      .query(async ({ input }) => {
+        const tokenData = await db.getAnthemShareToken(input.token);
+        if (!tokenData) throw new Error('Share token not found or expired');
+        await db.incrementShareTokenView(input.token);
+        return tokenData;
+      }),
+  }),
+
+  // ─── ADMIN DASHBOARD ─────────────────────────────────────────────
+  admin: router({
+    stats: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user?.role !== 'admin') throw new Error('Admin only');
+      return db.getAdminStats();
+    }),
+
+    allMemberships: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user?.role !== 'admin') throw new Error('Admin only');
+      return db.getAllMemberships();
+    }),
   }),
 
   // ─── AMBIENT MESSAGES ───────────────────────────────────────────

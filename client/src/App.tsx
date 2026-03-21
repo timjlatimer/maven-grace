@@ -9,6 +9,11 @@ import Dashboard from "./pages/Dashboard";
 import VampireSlayer from "./pages/VampireSlayer";
 import JourneyTracker from "./pages/JourneyTracker";
 import SongMoment from "./pages/SongMoment";
+import Membership from "./pages/Membership";
+import BudgetBuilder from "./pages/BudgetBuilder";
+import BillTracker from "./pages/BillTracker";
+import MilkMoney from "./pages/MilkMoney";
+import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
 function Router() {
@@ -20,6 +25,11 @@ function Router() {
       <Route path="/vampire-slayer" component={VampireSlayer} />
       <Route path="/journey" component={JourneyTracker} />
       <Route path="/song" component={SongMoment} />
+      <Route path="/membership" component={Membership} />
+      <Route path="/budget" component={BudgetBuilder} />
+      <Route path="/bills" component={BillTracker} />
+      <Route path="/milk-money" component={MilkMoney} />
+      <Route path="/admin" component={AdminDashboard} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

@@ -4,6 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { Loader2, Send, Sparkles, ArrowLeft, Volume2, VolumeX } from "lucide-react";
+import { VoiceInput } from "@/components/VoiceInput";
 import { Streamdown } from "streamdown";
 import { trpc } from "@/lib/trpc";
 import { useGraceSession } from "@/hooks/useGraceSession";
@@ -405,12 +406,28 @@ export default function GraceChat() {
             }}
             className="flex gap-2 items-end max-w-lg mx-auto"
           >
+            <VoiceInput
+              onTranscription={(text) => {
+                setInput(text);
+                // Auto-send after a short delay so user can see what was transcribed
+                setTimeout(() => {
+                  setInput(prev => {
+                    if (prev === text) {
+                      handleSend();
+                      return "";
+                    }
+                    return prev;
+                  });
+                }, 800);
+              }}
+              disabled={chatMutation.isPending}
+            />
             <Textarea
               ref={textareaRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Talk to Grace..."
+              placeholder="Talk to Grace... or tap the mic"
               className="flex-1 max-h-24 resize-none min-h-10 rounded-xl bg-muted/50 border-0 focus-visible:ring-primary/30"
               rows={1}
             />

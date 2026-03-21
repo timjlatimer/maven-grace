@@ -258,3 +258,207 @@ export async function markAmbientMessageRead(id: number) {
   if (!db) return;
   await db.update(graceAmbientMessages).set({ isRead: true }).where(eq(graceAmbientMessages.id, id));
 }
+
+// ══════════════════════════════════════════════════════════════════════
+// RACE 3 DATABASE HELPERS
+// ══════════════════════════════════════════════════════════════════════
+
+import {
+  mavenMemberships, budgetEntries, paychecks,
+  bills, milkMoneyAccounts, milkMoneyTransactions, anthemShareTokens
+} from "../drizzle/schema";
+
+// ─── MAVEN MEMBERSHIPS ──────────────────────────────────────────────
+
+export async function getMembership(profileId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(mavenMemberships).where(eq(mavenMemberships.profileId, profileId)).limit(1);
+  return result[0] || null;
+}
+
+export async function upsertMembership(profileId: number, data: Partial<typeof mavenMemberships.$inferInsert>) {
+  const db = await getDb();
+  if (!db) return null;
+  const existing = await getMembership(profileId);
+  if (existing) {
+    await db.update(mavenMemberships).set(data).where(eq(mavenMemberships.profileId, profileId));
+  } else {
+    await db.insert(mavenMemberships).values({ profileId, ...data });
+  }
+  return getMembership(profileId);
+}
+
+export async function getAllMemberships() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(mavenMemberships).orderBy(desc(mavenMemberships.createdAt));
+}
+
+// ─── BUDGET ENTRIES ─────────────────────────────────────────────────
+
+export async function addBudgetEntry(data: typeof budgetEntries.$inferInsert) {
+  const db = await getDb();
+  if (!db) return null;
+  await db.insert(budgetEntries).values(data);
+  const result = await db.select().from(budgetEntries).where(eq(budgetEntries.profileId, data.profileId)).orderBy(desc(budgetEntries.createdAt)).limit(1);
+  return result[0] || null;
+}
+
+export async function getBudgetEntries(profileId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(budgetEntries).where(and(eq(budgetEntries.profileId, profileId), eq(budgetEntries.isActive, true))).orderBy(budgetEntries.type, budgetEntries.category);
+}
+
+export async function updateBudgetEntry(id: number, data: Partial<typeof budgetEntries.$inferInsert>) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(budgetEntries).set(data).where(eq(budgetEntries.id, id));
+}
+
+export async function deleteBudgetEntry(id: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(budgetEntries).set({ isActive: false }).where(eq(budgetEntries.id, id));
+}
+
+// ─── PAYCHECKS ──────────────────────────────────────────────────────
+
+export async function upsertPaycheck(profileId: number, data: Partial<typeof paychecks.$inferInsert>) {
+  const db = await getDb();
+  if (!db) return null;
+  const existing = await db.select().from(paychecks).where(and(eq(paychecks.profileId, profileId), eq(paychecks.isActive, true))).limit(1);
+  if (existing.length > 0) {
+    await db.update(paychecks).set(data).where(eq(paychecks.id, existing[0].id));
+    const updated = await db.select().from(paychecks).where(eq(paychecks.id, existing[0].id)).limit(1);
+    return updated[0] || null;
+  } else {
+    await db.insert(paychecks).values({ profileId, amountCents: data.amountCents || 0, ...data });
+    const created = await db.select().from(paychecks).where(eq(paychecks.profileId, profileId)).orderBy(desc(paychecks.createdAt)).limit(1);
+    return created[0] || null;
+  }
+}
+
+export async function getPaycheck(profileId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(paychecks).where(and(eq(paychecks.profileId, profileId), eq(paychecks.isActive, true))).limit(1);
+  return result[0] || null;
+}
+
+// ─── BILLS ──────────────────────────────────────────────────────────
+
+export async function addBill(data: typeof bills.$inferInsert) {
+  const db = await getDb();
+  if (!db) return null;
+  await db.insert(bills).values(data);
+  const result = await db.select().from(bills).where(eq(bills.profileId, data.profileId)).orderBy(desc(bills.createdAt)).limit(1);
+  return result[0] || null;
+}
+
+export async function getBills(profileId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(bills).where(and(eq(bills.profileId, profileId), eq(bills.isActive, true))).orderBy(bills.dueDay);
+}
+
+export async function updateBill(id: number, data: Partial<typeof bills.$inferInsert>) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(bills).set(data).where(eq(bills.id, id));
+}
+
+export async function deleteBill(id: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(bills).set({ isActive: false }).where(eq(bills.id, id));
+}
+
+// ─── MILK MONEY ─────────────────────────────────────────────────────
+
+export async function getMilkMoneyAccount(profileId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(milkMoneyAccounts).where(eq(milkMoneyAccounts.profileId, profileId)).limit(1);
+  return result[0] || null;
+}
+
+export async function createMilkMoneyAccount(profileId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const existing = await getMilkMoneyAccount(profileId);
+  if (existing) return existing;
+  await db.insert(milkMoneyAccounts).values({ profileId });
+  return getMilkMoneyAccount(profileId);
+}
+
+export async function updateMilkMoneyAccount(profileId: number, data: Partial<typeof milkMoneyAccounts.$inferInsert>) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(milkMoneyAccounts).set(data).where(eq(milkMoneyAccounts.profileId, profileId));
+}
+
+export async function addMilkMoneyTransaction(data: typeof milkMoneyTransactions.$inferInsert) {
+  const db = await getDb();
+  if (!db) return null;
+  await db.insert(milkMoneyTransactions).values(data);
+  const result = await db.select().from(milkMoneyTransactions).where(eq(milkMoneyTransactions.accountId, data.accountId)).orderBy(desc(milkMoneyTransactions.createdAt)).limit(1);
+  return result[0] || null;
+}
+
+export async function getMilkMoneyTransactions(profileId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(milkMoneyTransactions).where(eq(milkMoneyTransactions.profileId, profileId)).orderBy(desc(milkMoneyTransactions.createdAt));
+}
+
+// ─── ANTHEM SHARE TOKENS ────────────────────────────────────────────
+
+export async function createAnthemShareToken(songId: number, senderProfileId: number, recipientName?: string, recipientMessage?: string) {
+  const db = await getDb();
+  if (!db) return null;
+  // Generate a unique token
+  const token = `anthem_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+  await db.insert(anthemShareTokens).values({ songId, senderProfileId, token, recipientName, recipientMessage, expiresAt });
+  const result = await db.select().from(anthemShareTokens).where(eq(anthemShareTokens.token, token)).limit(1);
+  return result[0] || null;
+}
+
+export async function getAnthemShareToken(token: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(anthemShareTokens).where(eq(anthemShareTokens.token, token)).limit(1);
+  return result[0] || null;
+}
+
+export async function incrementShareTokenView(token: string) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(anthemShareTokens).set({ viewCount: sql`viewCount + 1` }).where(eq(anthemShareTokens.token, token));
+}
+
+// ─── ADMIN STATS ────────────────────────────────────────────────────
+
+export async function getAdminStats() {
+  const db = await getDb();
+  if (!db) return null;
+  const [totalMembers] = await db.select({ count: sql<number>`count(*)` }).from(gracePersonProfiles);
+  const [totalUsers] = await db.select({ count: sql<number>`count(*)` }).from(users);
+  const [totalSongs] = await db.select({ count: sql<number>`count(*)` }).from(songs);
+  const [totalConversations] = await db.select({ count: sql<number>`count(*)` }).from(graceConversations);
+  const allImpacts = await db.select().from(financialImpactLog);
+  const totalFinancialLift = allImpacts.reduce((sum, i) => sum + i.estimatedValue, 0);
+  const [cancelledSubs] = await db.select({ count: sql<number>`count(*)` }).from(subscriptions).where(eq(subscriptions.status, 'cancelled'));
+  const membershipCounts = await db.select({ tier: mavenMemberships.tier, count: sql<number>`count(*)` }).from(mavenMemberships).groupBy(mavenMemberships.tier);
+  return {
+    totalMembers: Number(totalMembers?.count || 0),
+    totalUsers: Number(totalUsers?.count || 0),
+    totalSongs: Number(totalSongs?.count || 0),
+    totalConversations: Number(totalConversations?.count || 0),
+    totalFinancialLiftCents: totalFinancialLift,
+    cancelledSubscriptions: Number(cancelledSubs?.count || 0),
+    membershipsByTier: membershipCounts.reduce((acc, m) => ({ ...acc, [m.tier]: Number(m.count) }), {} as Record<string, number>),
+  };
+}
