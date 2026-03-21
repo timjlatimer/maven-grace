@@ -89,3 +89,11 @@
 - [x] Graceful fallback if KIE.AI is unavailable
 - [x] Vitest tests for voice router (7 tests, all passing)
 - [x] Deploy to live URL
+
+## Phase 14 — Voice-First Default + Race Loop OS (Mar 21, 2026)
+- [x] Grace Chat: voice-on by default (voiceEnabled starts true)
+- [x] Grace Chat: rename toggle to "Mute Grace" / "Unmute Grace"
+- [x] Grace Chat: auto-request voice for Grace's opening message
+- [x] Update gap analysis with suggestion triage system
+- [x] Create Race 3 input package and commit to GitHub (commit 42d1e23)
+- [x] Checkpoint and deploy

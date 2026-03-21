@@ -33,12 +33,12 @@ function VoiceToggle({
   return (
     <button
       onClick={onToggle}
-      title={enabled ? "Turn off Grace's voice" : "Turn on Grace's voice"}
+      title={enabled ? "Mute Grace" : "Unmute Grace"}
       className={cn(
         "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-all border",
         enabled
           ? "bg-primary/10 text-primary border-primary/30"
-          : "bg-muted text-muted-foreground border-transparent hover:border-border"
+          : "bg-muted/60 text-muted-foreground border-border hover:border-primary/30"
       )}
     >
       {enabled ? (
@@ -46,7 +46,7 @@ function VoiceToggle({
       ) : (
         <VolumeX className="w-3.5 h-3.5" />
       )}
-      <span className="hidden sm:inline">{enabled ? "Voice on" : "Voice off"}</span>
+      <span className="hidden sm:inline">{enabled ? "Mute Grace" : "Unmute Grace"}</span>
     </button>
   );
 }
@@ -110,7 +110,8 @@ export default function GraceChat() {
   const [step, setStep] = useState(1);
   const [entryId, setEntryId] = useState<number | null>(null);
   const [hasStarted, setHasStarted] = useState(false);
-  const [voiceEnabled, setVoiceEnabled] = useState(false);
+  // Voice is ON by default — Grace teaches Ruby Red the voice-first way
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
