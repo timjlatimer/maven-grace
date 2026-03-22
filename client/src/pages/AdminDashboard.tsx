@@ -19,7 +19,7 @@ export default function AdminDashboard() {
 
   if (!isAuthenticated || user?.role !== "admin") {
     return (
-      <div className="min-h-screen bg-cream flex items-center justify-center p-4">
+      <div className="min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-cream flex items-center justify-center p-4">
         <Card className="p-8 text-center max-w-sm">
           <Shield className="w-12 h-12 text-gray-300 mx-auto mb-3" />
           <h2 className="font-bold text-gray-800 mb-2">Admin Only</h2>
@@ -32,7 +32,7 @@ export default function AdminDashboard() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-cream flex items-center justify-center">
+      <div className="min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-cream flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
           <p className="text-gray-500 text-sm">Loading platform stats...</p>
@@ -53,10 +53,10 @@ export default function AdminDashboard() {
   const membershipTiers = stats?.membershipsByTier || {};
 
   return (
-    <div className="min-h-screen bg-cream pb-24">
+    <div className="min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-cream pb-24">
       {/* Header */}
       <div className="bg-gradient-to-br from-gray-800 to-gray-900 text-white px-4 pt-12 pb-8">
-        <div className="max-w-lg mx-auto">
+        <div className="w-full max-w-lg mx-auto">
           <div className="flex items-center gap-2 mb-2">
             <BarChart3 className="w-5 h-5 text-gray-400" />
             <span className="text-gray-400 text-sm font-semibold uppercase tracking-wide">Admin Dashboard</span>
@@ -66,7 +66,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="max-w-lg mx-auto px-4 mt-4 space-y-4">
+      <div className="w-full max-w-lg mx-auto px-4 mt-4 space-y-4">
         {/* Key stats grid */}
         <div className="grid grid-cols-2 gap-3">
           {statCards.map((stat) => {

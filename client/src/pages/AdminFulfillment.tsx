@@ -307,7 +307,7 @@ export default function AdminFulfillment() {
   // Auth gate
   if (!isAuthenticated || user?.role !== "admin") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <div className="min-h-screen w-full max-w-[100vw] overflow-x-hidden flex items-center justify-center bg-background p-4">
         <Card className="max-w-sm w-full">
           <CardContent className="p-6 text-center space-y-4">
             <Package className="w-12 h-12 text-muted-foreground mx-auto" />
@@ -325,7 +325,7 @@ export default function AdminFulfillment() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-background">
       {/* Header */}
       <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white px-4 py-6">
         <div className="max-w-4xl mx-auto">

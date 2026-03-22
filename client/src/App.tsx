@@ -27,6 +27,7 @@ import CommunityCredits from "./pages/CommunityCredits";
 import PaydaySetup from "./pages/PaydaySetup";
 import CrisisBeacon from "./pages/CrisisBeacon";
 import GraceStatusPage from "./pages/GraceStatusPage";
+import EssentialsBox from "./pages/EssentialsBox";
 import MoonshotReveal from "./pages/MoonshotReveal";
 
 function Router() {
@@ -57,6 +58,7 @@ function Router() {
       <Route path="/crisis" component={CrisisBeacon} />
       <Route path="/grace-status" component={GraceStatusPage} />
       <Route path="/moonshot" component={MoonshotReveal} />
+      <Route path="/essentials-box" component={EssentialsBox} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
@@ -70,7 +72,7 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <GraceBattery />
-          <div style={{ paddingTop: "36px" }}>
+          <div style={{ paddingTop: "32px" }}>
             <Router />
           </div>
         </TooltipProvider>

@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { useGraceSession } from "@/hooks/useGraceSession";
+import { useAuth } from "@/_core/hooks/useAuth";
 import BottomNav from "@/components/BottomNav";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ type TabType = "active" | "completed" | "all";
 export default function PromisesKeep() {
   const [, navigate] = useLocation();
   const { profileId } = useGraceSession();
+  const { user } = useAuth();
   const [tab, setTab] = useState<TabType>("active");
   const [showAdd, setShowAdd] = useState(false);
   const [newPromise, setNewPromise] = useState("");
@@ -68,16 +70,16 @@ export default function PromisesKeep() {
     : 100) : 100;
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-background pb-20">
       <div className="flex items-center gap-3 px-4 py-3 border-b bg-card/80 backdrop-blur-sm">
         <button onClick={() => navigate("/")} className="text-muted-foreground hover:text-foreground">
           <ArrowLeft className="w-5 h-5" />
         </button>
         <h1 className="text-lg font-bold text-foreground">Promises to Keep</h1>
-        {profileId && <span className="text-xs text-muted-foreground ml-auto">Nana the Promise Keeper</span>}
+        {user && <span className="text-xs text-muted-foreground ml-auto">Nana the Promise Keeper</span>}
       </div>
 
-      <div className="max-w-lg mx-auto px-4 py-6 space-y-5">
+      <div className="w-full max-w-lg mx-auto px-4 py-6 space-y-5">
         {/* Stats Row */}
         <div className="grid grid-cols-3 gap-3">
           <Card className="bg-primary/5 border-primary/20">

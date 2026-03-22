@@ -45,7 +45,7 @@ export default function AnthemLanding({ token }: AnthemLandingProps) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#FFF8F0] to-[#FFF0E6] flex items-center justify-center">
+      <div className="min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-gradient-to-b from-[#FFF8F0] to-[#FFF0E6] flex items-center justify-center">
         <div className="text-center space-y-4 animate-pulse">
           <Gift className="w-16 h-16 text-[#2DD4BF] mx-auto" />
           <p className="text-xl font-medium text-[#1a1a2e]">Someone sent you something special...</p>
@@ -56,7 +56,7 @@ export default function AnthemLanding({ token }: AnthemLandingProps) {
 
   if (error || !data) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#FFF8F0] to-[#FFF0E6] flex items-center justify-center p-6">
+      <div className="min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-gradient-to-b from-[#FFF8F0] to-[#FFF0E6] flex items-center justify-center p-6">
         <Card className="max-w-md w-full border-0 shadow-xl">
           <CardContent className="p-8 text-center space-y-4">
             <Heart className="w-12 h-12 text-[#FB7185] mx-auto" />
@@ -79,11 +79,11 @@ export default function AnthemLanding({ token }: AnthemLandingProps) {
   const personalMessage = data.recipientMessage;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#FFF8F0] via-[#FFF0E6] to-[#FFF8F0]">
+    <div className="min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-gradient-to-b from-[#FFF8F0] via-[#FFF0E6] to-[#FFF8F0]">
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-[#2DD4BF]/10 via-transparent to-[#FB7185]/10" />
-        <div className="relative max-w-lg mx-auto px-6 pt-12 pb-8 text-center">
+        <div className="relative w-full max-w-lg mx-auto px-6 pt-12 pb-8 text-center">
           <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm rounded-full px-4 py-2 mb-6 shadow-sm">
             <Gift className="w-4 h-4 text-[#FB7185]" />
             <span className="text-sm font-medium text-[#4a4a6a]">A Gift Anthem from {senderName}</span>
@@ -104,7 +104,7 @@ export default function AnthemLanding({ token }: AnthemLandingProps) {
 
       {/* Song Card */}
       {song && (
-        <div className="max-w-lg mx-auto px-6 pb-6">
+        <div className="w-full max-w-lg mx-auto px-6 pb-6">
           <Card className="border-0 shadow-xl overflow-hidden">
             {/* Song Header */}
             <div className="bg-gradient-to-r from-[#2DD4BF] to-[#6EE7B7] p-6 text-white">
@@ -159,7 +159,7 @@ export default function AnthemLanding({ token }: AnthemLandingProps) {
       )}
 
       {/* CTA Section — Meet Grace */}
-      <div className="max-w-lg mx-auto px-6 pb-12">
+      <div className="w-full max-w-lg mx-auto px-6 pb-12">
         <Card className="border-0 shadow-lg bg-gradient-to-br from-[#1a1a2e] to-[#2a2a4e] text-white overflow-hidden">
           <CardContent className="p-8 text-center space-y-4">
             <div className="w-16 h-16 bg-[#2DD4BF]/20 rounded-full flex items-center justify-center mx-auto">

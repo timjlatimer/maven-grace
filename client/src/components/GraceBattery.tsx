@@ -57,7 +57,7 @@ function BatteryIcon({ level, color, isCharging }: { level: number; color: strin
   const showPulse = level > 0 && level < 10;
 
   return (
-    <svg width="36" height="18" viewBox="0 0 36 18" className={`${showPulse ? 'animate-pulse' : ''}`}>
+    <svg width="30" height="16" viewBox="0 0 36 18" className={`${showPulse ? 'animate-pulse' : ''}`}>
       {/* Battery body */}
       <rect x="1" y="2" width="30" height="14" rx="2" ry="2"
         fill="none" stroke={color} strokeWidth="1.5" />
@@ -91,7 +91,7 @@ function DignityRing({ score, color }: { score: number; color: string }) {
   const showShimmer = score >= 100;
 
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" className={showShimmer ? "animate-pulse" : ""}>
+    <svg width="18" height="18" viewBox="0 0 20 20" className={showShimmer ? "animate-pulse" : ""}>
       {/* Background ring */}
       <circle cx="10" cy="10" r={radius} fill="none" stroke="#e5e7eb" strokeWidth="2.5" />
       {/* Progress ring */}
@@ -254,13 +254,13 @@ export default function GraceBattery() {
     return (
       <>
         <div
-          className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-2 py-1 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border-b border-gray-200/50 dark:border-gray-700/50"
-          style={{ height: "32px" }}
+          className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-2 py-0.5 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border-b border-gray-200/50 dark:border-gray-700/50 overflow-hidden"
+          style={{ height: "30px", maxWidth: "100vw" }}
         >
           {/* Left: Grace Battery (demo — 100%) */}
           <button
             onClick={() => setStatusModalOpen(true)}
-            className="flex items-center gap-1 hover:opacity-80 transition-opacity shrink-0"
+            className="flex items-center gap-0.5 hover:opacity-80 transition-opacity"
             aria-label="Grace juice level: 100% — preview"
           >
             <BatteryIcon level={100} color={demoBatteryColor} />
@@ -270,14 +270,14 @@ export default function GraceBattery() {
           </button>
 
           {/* Center: subtle Maven mark */}
-          <span className="text-[10px] text-muted-foreground font-medium tracking-wide opacity-50 shrink-0">
+          <span className="text-[9px] text-muted-foreground font-medium tracking-wide opacity-50 shrink-0">
             MAVEN
           </span>
 
           {/* Right: Dignity Score (demo — starting state) */}
           <button
             onClick={() => setStatusModalOpen(true)}
-            className="flex items-center gap-1 hover:opacity-80 transition-opacity shrink-0"
+            className="flex items-center gap-0.5 hover:opacity-80 transition-opacity"
             aria-label="Dignity Score: starting — preview"
           >
             <span className="text-[10px] font-medium tabular-nums" style={{ color: demoDignityColor }}>
@@ -314,12 +314,12 @@ export default function GraceBattery() {
 
   return (
     <>
-      <div className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-2 py-1 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border-b border-gray-200/50 dark:border-gray-700/50 ${brightnessClass}`}
-        style={{ height: "32px" }}>
+      <div className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-2 py-0.5 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border-b border-gray-200/50 dark:border-gray-700/50 overflow-hidden ${brightnessClass}`}
+        style={{ height: "30px", maxWidth: "100vw" }}>
         {/* Left: Grace Battery */}
         <button
           onClick={() => setStatusModalOpen(true)}
-          className="flex items-center gap-1 hover:opacity-80 transition-opacity shrink-0"
+          className="flex items-center gap-0.5 hover:opacity-80 transition-opacity"
           aria-label={`Grace juice level: ${batteryLevel}%`}
         >
           <BatteryIcon level={batteryLevel} color={batteryColor} />
@@ -329,14 +329,14 @@ export default function GraceBattery() {
         </button>
 
         {/* Center: subtle Maven mark */}
-        <span className="text-[10px] text-muted-foreground font-medium tracking-wide opacity-50 shrink-0">
+        <span className="text-[9px] text-muted-foreground font-medium tracking-wide opacity-50 shrink-0">
           MAVEN
         </span>
 
         {/* Right: Dignity Score */}
         <button
           onClick={() => navigate("/dignity")}
-          className="flex items-center gap-1 hover:opacity-80 transition-opacity shrink-0"
+          className="flex items-center gap-0.5 hover:opacity-80 transition-opacity"
           aria-label={`Dignity Score: ${dignityTotal}`}
         >
           <span className="text-[10px] font-medium tabular-nums" style={{ color: dignityColor }}>

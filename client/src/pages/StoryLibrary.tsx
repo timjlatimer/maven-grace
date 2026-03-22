@@ -50,7 +50,7 @@ export default function StoryLibrary() {
   });
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-background pb-20">
       <div className="flex items-center gap-3 px-4 py-3 border-b bg-card/80 backdrop-blur-sm">
         <button onClick={() => navigate("/")} className="text-muted-foreground hover:text-foreground">
           <ArrowLeft className="w-5 h-5" />
@@ -59,7 +59,7 @@ export default function StoryLibrary() {
         <span className="text-xs text-muted-foreground ml-auto">Jolene the Journalist</span>
       </div>
 
-      <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
+      <div className="w-full max-w-lg mx-auto px-4 py-6 space-y-6">
         {/* Intro */}
         <Card className="bg-gradient-to-br from-warmth/10 via-accent/10 to-primary/5 border-warmth/20">
           <CardContent className="py-6 text-center">

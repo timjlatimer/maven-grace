@@ -97,10 +97,10 @@ export default function BudgetBuilder() {
   const balanceBg = balance >= 0 ? "bg-teal-50 border-teal-200" : "bg-rose-50 border-rose-200";
 
   return (
-    <div className="min-h-screen bg-cream pb-24">
+    <div className="min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-cream pb-24">
       {/* Header */}
       <div className="bg-gradient-to-br from-teal-600 to-teal-700 text-white px-4 pt-12 pb-8">
-        <div className="max-w-lg mx-auto">
+        <div className="w-full max-w-lg mx-auto">
           <div className="flex items-center gap-2 mb-2">
             <Wallet className="w-5 h-5 text-teal-200" />
             <span className="text-teal-200 text-sm font-semibold uppercase tracking-wide">Budget Builder</span>
@@ -110,7 +110,7 @@ export default function BudgetBuilder() {
         </div>
       </div>
 
-      <div className="max-w-lg mx-auto px-4 mt-4 space-y-4">
+      <div className="w-full max-w-lg mx-auto px-4 mt-4 space-y-4">
         {/* Balance Summary */}
         <Card className={`p-5 border-2 ${balanceBg}`}>
           <div className="grid grid-cols-3 gap-4 text-center">

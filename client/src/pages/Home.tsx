@@ -11,7 +11,7 @@ export default function Home() {
   const { profileId } = useGraceSession();
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background pb-20 w-full max-w-[100vw] overflow-x-hidden">
       {/* Hero — "Maven and Grace Give a Shit" */}
       <div className="relative overflow-hidden bg-gradient-to-br from-primary/15 via-accent/20 to-maven-rose/10 px-4 pt-12 pb-10 max-w-full">
         {/* Decorative background art — intentionally faint, z-index below content */}
@@ -22,7 +22,7 @@ export default function Home() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="max-w-lg mx-auto"
+          className="w-full max-w-lg mx-auto"
         >
           <div className="flex items-center gap-2 mb-4">
             <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center maven-glow">
@@ -52,7 +52,7 @@ export default function Home() {
             variant="outline"
             size="lg"
             className="w-full sm:w-auto font-bold text-base rounded-xl h-12 px-8 mt-3 border-2 border-primary/40 text-primary hover:bg-primary/10"
-            onClick={() => navigate("/membership")}
+            onClick={() => navigate("/essentials-box")}
           >
             <Package className="w-5 h-5 mr-2" />
             Get My Free Box
@@ -65,7 +65,7 @@ export default function Home() {
       </div>
 
       {/* What Maven Grace Does — Feature Cards */}
-      <div className="max-w-lg mx-auto px-4 py-8 space-y-4">
+      <div className="w-full max-w-lg mx-auto px-4 py-8 space-y-4">
         <h2 className="text-lg font-bold text-foreground">What Grace does for you</h2>
 
         <motion.div

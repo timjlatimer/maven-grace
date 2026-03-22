@@ -255,7 +255,7 @@ export default function GraceChat() {
   );
 
   return (
-    <div className="flex flex-col h-screen bg-background">
+    <div className="flex flex-col h-screen bg-background w-full max-w-[100vw] overflow-x-hidden">
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b bg-card/80 backdrop-blur-sm">
         <button
@@ -368,7 +368,7 @@ export default function GraceChat() {
             e.preventDefault();
             handleSend();
           }}
-          className="flex gap-2 items-end max-w-lg mx-auto"
+          className="flex gap-2 items-end w-full max-w-lg mx-auto"
         >
           <VoiceInput
             onTranscription={(text) => {

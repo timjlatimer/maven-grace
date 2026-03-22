@@ -177,10 +177,25 @@
   * {
     @apply border-border outline-ring/50;
   }
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+  html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+    width: 100%;
+  }
   body {
     @apply bg-background text-foreground;
+    overflow-wrap: anywhere;
+    word-break: break-word;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+  #root {
+    overflow-x: hidden;
+    max-width: 100vw;
+    width: 100%;
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),

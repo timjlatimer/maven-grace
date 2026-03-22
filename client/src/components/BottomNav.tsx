@@ -41,7 +41,7 @@ export default function BottomNav() {
       {showMore && (
         <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={() => setShowMore(false)}>
           <div
-            className="absolute bottom-16 left-0 right-0 bg-card border-t border-border rounded-t-2xl p-4 max-w-lg mx-auto"
+            className="absolute bottom-14 left-0 right-0 bg-card border-t border-border rounded-t-2xl p-3 w-full max-w-lg mx-auto"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-3">
@@ -50,19 +50,19 @@ export default function BottomNav() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-5 gap-1">
               {moreNav.map((item) => {
                 const isActive = location === item.path;
                 return (
                   <Link key={item.path} href={item.path} onClick={() => setShowMore(false)}>
                     <button className={cn(
-                      "flex flex-col items-center justify-center gap-1 w-full py-3 rounded-xl transition-all",
+                      "flex flex-col items-center justify-center gap-1 w-full py-2 rounded-xl transition-all",
                       isActive
                         ? "text-primary bg-primary/10"
                         : "text-muted-foreground hover:text-foreground hover:bg-accent"
                     )}>
-                      <item.icon className={cn("w-5 h-5", isActive && "stroke-[2.5]")} />
-                      <span className="text-[10px] font-medium">{item.label}</span>
+                      <item.icon className={cn("w-4 h-4", isActive && "stroke-[2.5]")} />
+                      <span className="text-[9px] font-medium leading-tight">{item.label}</span>
                     </button>
                   </Link>
                 );
@@ -72,21 +72,21 @@ export default function BottomNav() {
         </div>
       )}
 
-      {/* Bottom nav bar */}
+      {/* Bottom nav bar — flex-1 tabs to fit any screen width */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-sm border-t border-border safe-area-pb">
-        <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-2">
+        <div className="flex items-center h-14 w-full">
           {primaryNav.map((item) => {
             const isActive = location === item.path;
             return (
-              <Link key={item.path} href={item.path}>
+              <Link key={item.path} href={item.path} className="flex-1">
                 <button className={cn(
-                  "flex flex-col items-center justify-center gap-0.5 w-14 h-14 rounded-xl transition-all",
+                  "flex flex-col items-center justify-center gap-0.5 w-full h-14 transition-all",
                   isActive
-                    ? "text-primary bg-primary/10"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "text-primary"
+                    : "text-muted-foreground"
                 )}>
                   <item.icon className={cn("w-5 h-5", isActive && "stroke-[2.5]")} />
-                  <span className="text-[10px] font-medium">{item.label}</span>
+                  <span className={cn("text-[10px] font-medium", isActive && "font-semibold")}>{item.label}</span>
                 </button>
               </Link>
             );
@@ -95,14 +95,14 @@ export default function BottomNav() {
           <button
             onClick={() => setShowMore(!showMore)}
             className={cn(
-              "flex flex-col items-center justify-center gap-0.5 w-14 h-14 rounded-xl transition-all",
+              "flex-1 flex flex-col items-center justify-center gap-0.5 h-14 transition-all",
               (showMore || isMoreActive)
-                ? "text-primary bg-primary/10"
-                : "text-muted-foreground hover:text-foreground"
+                ? "text-primary"
+                : "text-muted-foreground"
             )}
           >
             <MoreHorizontal className={cn("w-5 h-5", (showMore || isMoreActive) && "stroke-[2.5]")} />
-            <span className="text-[10px] font-medium">More</span>
+            <span className={cn("text-[10px] font-medium", (showMore || isMoreActive) && "font-semibold")}>More</span>
           </button>
         </div>
       </nav>

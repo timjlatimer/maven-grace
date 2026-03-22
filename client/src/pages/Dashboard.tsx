@@ -39,7 +39,7 @@ export default function Dashboard() {
   const categories = summary?.byCategory || {};
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-background pb-20">
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b bg-card/80 backdrop-blur-sm">
         <button onClick={() => navigate("/")} className="text-muted-foreground hover:text-foreground">
@@ -48,7 +48,7 @@ export default function Dashboard() {
         <h1 className="text-lg font-bold text-foreground">Your Financial Lift</h1>
       </div>
 
-      <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
+      <div className="w-full max-w-lg mx-auto px-4 py-6 space-y-6">
         {/* Hero Lift Number */}
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}

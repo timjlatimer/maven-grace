@@ -107,7 +107,7 @@ export default function DignityScore() {
   const totalScore = score?.totalScore || 0;
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-background pb-20">
       <div className="flex items-center gap-3 px-4 py-3 border-b bg-card/80 backdrop-blur-sm">
         <button onClick={() => navigate("/")} className="text-muted-foreground hover:text-foreground">
           <ArrowLeft className="w-5 h-5" />
@@ -115,7 +115,7 @@ export default function DignityScore() {
         <h1 className="text-lg font-bold text-foreground">Dignity Score</h1>
       </div>
 
-      <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
+      <div className="w-full max-w-lg mx-auto px-4 py-6 space-y-6">
         {/* Radial Score */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <Card className="bg-gradient-to-br from-primary/5 via-accent/10 to-lift/5 border-primary/20">

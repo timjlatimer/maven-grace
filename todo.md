@@ -307,4 +307,27 @@
 - [x] Write vitest tests for Race 8 features (22 new tests, 130 total across 9 files)
 - [x] Commit to GitHub timjlatimer/maven-grace — commit 08224c2 confirmed live
 - [x] Commit announcer log to vault — commit 3d0e464 confirmed live
+- [x] Deploy to mavengrace-oh49sfbq.manus.space — deployed, checkpoint 1b3a8160
+
+## Race 9 — Mobile Polish Sprint (March 22, 2026)
+
+### P0 — Systemic Mobile Overflow Fix
+- [x] Fix global CSS: overflow-x hidden on html/body/#root, max-width 100vw, overflow-wrap anywhere
+- [x] Fix GraceBattery bar: shrink SVGs, max-w-full, overflow-hidden — both indicators visible at 390px
+- [x] Fix BottomNav: flex-1 instead of fixed w-12, text-[9px], all 6 items fit on 390px
+
+### P1 — Page-Specific Mobile Fixes
+- [x] Fix Promises stats cards — verified with Puppeteer at 390x844, all 3 cards visible
+- [x] Fix Vampire Slayer — w-full max-w-[100vw] overflow-x-hidden on root div
+- [x] Fix Membership — w-full max-w-[100vw] overflow-x-hidden on root div
+- [x] Fix Dashboard — w-full max-w-[100vw] overflow-x-hidden on root div
+- [x] Fix Community Credits — w-full max-w-[100vw] overflow-x-hidden on root div
+
+### P2 — Essentials Box Request Flow
+- [x] Build Essentials Box request page at /essentials-box — warm form, Grace-voiced, sign-up gate for unauth
+
+### Race 9 Completion
+- [x] Write vitest tests for Race 9 features (16 new tests, 146 total across 10 files)
+- [ ] Commit to GitHub timjlatimer/maven-grace — IN PROGRESS
+- [ ] Commit announcer log to vault
 - [ ] Deploy to mavengrace-oh49sfbq.manus.space — IN PROGRESS
