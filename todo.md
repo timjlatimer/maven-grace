@@ -256,5 +256,5 @@
 - [x] Verify heart icon on Home.tsx is decorative background art (not functional) — reduced to opacity-5, pointer-events-none, z-index 0
 - [x] Confirm dual indicator visible on ALL pages including landing page
 - [x] Run all tests — confirmed 88 passing across 7 files
-- [ ] Commit to GitHub timjlatimer/maven-grace with hash — IN PROGRESS
+- [x] Commit to GitHub timjlatimer/maven-grace with hash — commit 20e0ba9 confirmed live
 - [ ] Deploy to mavengrace-oh49sfbq.manus.space — IN PROGRESS
