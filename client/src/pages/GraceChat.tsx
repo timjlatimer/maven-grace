@@ -14,6 +14,7 @@ import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import GraceDailySelfBanner from "@/components/GraceDailySelfBanner";
 import CoachingModeToggle from "@/components/CoachingModeToggle";
+import GraceTypingIndicator from "@/components/GraceTypingIndicator";
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -456,24 +457,10 @@ export default function GraceChat() {
               ))}
             </AnimatePresence>
 
-            {chatMutation.isPending && !isInitializing && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex gap-2"
-              >
-                <div className="w-7 h-7 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
-                  <Sparkles className="w-3.5 h-3.5 text-primary" />
-                </div>
-                <div className="rounded-2xl rounded-bl-md bg-muted px-4 py-3">
-                  <div className="flex gap-1">
-                    <div className="w-2 h-2 rounded-full bg-primary/40 animate-bounce" style={{ animationDelay: "0ms" }} />
-                    <div className="w-2 h-2 rounded-full bg-primary/40 animate-bounce" style={{ animationDelay: "150ms" }} />
-                    <div className="w-2 h-2 rounded-full bg-primary/40 animate-bounce" style={{ animationDelay: "300ms" }} />
-                  </div>
-                </div>
-              </motion.div>
-            )}
+            <GraceTypingIndicator
+              isTyping={chatMutation.isPending && !isInitializing}
+              personality={(localStorage.getItem("grace_personality") as any) || "bestfriend"}
+            />
           </div>
         </ScrollArea>
       </div>

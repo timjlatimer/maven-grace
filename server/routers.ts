@@ -334,9 +334,20 @@ export const appRouter = router({
           }
         } catch (e) { /* ignore */ }
 
+        // Build story arc context
+        let storyArcContext = "";
+        try {
+          const { buildStoryArcContext } = await import("./story-arc");
+          // Detect recent events from context
+          const recentEvents: string[] = [];
+          if (billAlertContext) recentEvents.push("bill_paid");
+          if (celebrationContext) recentEvents.push("dignity_up");
+          storyArcContext = "\n" + buildStoryArcContext(recentEvents);
+        } catch (e) { /* ignore */ }
+
         // Build messages for LLM
         const llmMessages = [
-          { role: "system" as const, content: GRACE_SYSTEM_PROMPT + personalityContext + culturalContext + coachingContext + memoryContext + profileContext + stepContext + modeContext + vulnerabilityContext + dailySelfContext + selfCareContext + billAlertContext + emotionalToneContext + celebrationContext + growthContext },
+          { role: "system" as const, content: GRACE_SYSTEM_PROMPT + personalityContext + culturalContext + coachingContext + memoryContext + profileContext + stepContext + modeContext + vulnerabilityContext + dailySelfContext + selfCareContext + billAlertContext + emotionalToneContext + celebrationContext + growthContext + storyArcContext },
           ...history.slice(-16).map(h => ({
             role: h.role as "user" | "assistant",
             content: h.content
