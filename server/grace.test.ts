@@ -41,6 +41,7 @@ vi.mock("./db", () => ({
     updatedAt: new Date(),
     userId: null,
   }),
+  getGracePreferences: vi.fn().mockResolvedValue(null),
   updateProfile: vi.fn().mockResolvedValue(undefined),
   getProfileById: vi.fn().mockResolvedValue({
     id: 1, sessionId: "test-session", firstName: "Ruby"

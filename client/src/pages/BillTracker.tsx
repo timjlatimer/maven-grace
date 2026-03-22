@@ -1,3 +1,4 @@
+import { useHapticEmpathy } from "@/hooks/useHapticEmpathy";
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { useGraceSession } from "@/hooks/useGraceSession";
@@ -23,6 +24,7 @@ function getDaysUntilDue(dueDay: number) {
 }
 
 export default function BillTracker() {
+  useHapticEmpathy(); // Move 37 #1 — 60 BPM heartbeat before financial data
   const { profileId } = useGraceSession();
   const [showAddForm, setShowAddForm] = useState(false);
   const [showScript, setShowScript] = useState<number | null>(null);

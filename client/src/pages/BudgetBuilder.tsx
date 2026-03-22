@@ -1,3 +1,4 @@
+import { useHapticEmpathy } from "@/hooks/useHapticEmpathy";
 import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { useGraceSession } from "@/hooks/useGraceSession";
@@ -16,6 +17,7 @@ function formatCents(cents: number) {
 }
 
 export default function BudgetBuilder() {
+  useHapticEmpathy(); // Move 37 #1 — 60 BPM heartbeat before financial data
   const { profileId } = useGraceSession();
   const [showAddForm, setShowAddForm] = useState(false);
   const [showPaycheckForm, setShowPaycheckForm] = useState(false);

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { useGraceSession } from "@/hooks/useGraceSession";
+import { useHapticEmpathy } from "@/hooks/useHapticEmpathy";
 import BottomNav from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 export default function VampireSlayer() {
+  useHapticEmpathy(); // Move 37 #1 — 60 BPM heartbeat before financial data
   const [, navigate] = useLocation();
   const { profileId } = useGraceSession();
   const [newName, setNewName] = useState("");

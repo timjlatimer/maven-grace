@@ -35,6 +35,10 @@ import CrisisBeacon from "./pages/CrisisBeacon";
 import GraceStatusPage from "./pages/GraceStatusPage";
 import EssentialsBox from "./pages/EssentialsBox";
 import MoonshotReveal from "./pages/MoonshotReveal";
+import PersonalityDial from "./pages/PersonalityDial";
+import ConsciousnessTier from "./pages/ConsciousnessTier";
+import FriendsWithGrace from "./pages/FriendsWithGrace";
+import GraceCalling from "./pages/GraceCalling";
 
 function Router() {
   return (
@@ -65,6 +69,10 @@ function Router() {
       <Route path="/grace-status" component={GraceStatusPage} />
       <Route path="/moonshot" component={MoonshotReveal} />
       <Route path="/essentials-box" component={EssentialsBox} />
+      <Route path="/personality" component={PersonalityDial} />
+      <Route path="/consciousness" component={ConsciousnessTier} />
+      <Route path="/friends" component={FriendsWithGrace} />
+      <Route path="/grace-calling" component={GraceCalling} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

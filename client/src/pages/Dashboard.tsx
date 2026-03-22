@@ -1,3 +1,4 @@
+import { useHapticEmpathy } from "@/hooks/useHapticEmpathy";
 import { trpc } from "@/lib/trpc";
 import { useGraceSession } from "@/hooks/useGraceSession";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -23,6 +24,7 @@ function formatCents(cents: number): string {
 }
 
 export default function Dashboard() {
+  useHapticEmpathy(); // Move 37 #1 — 60 BPM heartbeat before financial data
   const [, navigate] = useLocation();
   const { profileId } = useGraceSession();
 

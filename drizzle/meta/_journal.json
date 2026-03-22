@@ -43,6 +43,13 @@
       "when": 1774143859021,
       "tag": "0005_sour_rafael_vega",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1774172455481,
+      "tag": "0006_silky_multiple_man",
+      "breakpoints": true
     }
   ]
 }

@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import GraceVoiceToggle from "./GraceVoiceToggle";
+import { ConsciousnessRing } from "./ConsciousnessRing";
 
 // ── Color helpers ──────────────────────────────────────────────────────
 function getBatteryColor(level: number): string {
@@ -270,9 +271,10 @@ export default function GraceBattery() {
             </span>
           </button>
 
-          {/* Center: voice toggle + Maven mark */}
+          {/* Center: voice toggle + consciousness ring + Maven mark */}
           <div className="flex items-center gap-1">
             <GraceVoiceToggle />
+            <ConsciousnessRing />
             <span className="text-[9px] text-muted-foreground font-medium tracking-wide opacity-50 shrink-0">
               MAVEN
             </span>
@@ -332,9 +334,10 @@ export default function GraceBattery() {
           </span>
         </button>
 
-        {/* Center: voice toggle + Maven mark */}
+        {/* Center: voice toggle + consciousness ring + Maven mark */}
         <div className="flex items-center gap-1">
           <GraceVoiceToggle />
+          <ConsciousnessRing />
           <span className="text-[9px] text-muted-foreground font-medium tracking-wide opacity-50 shrink-0">
             MAVEN
           </span>

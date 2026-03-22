@@ -5,7 +5,7 @@ import {
   gracePersonProfiles, graceMemory, graceConversations,
   trojanHorseEntries, songs, financialImpactLog,
   subscriptions, journeyMilestones, graceAmbientMessages,
-  essentialsOrders
+  essentialsOrders, gracePreferences, graceReferrals
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -1074,4 +1074,86 @@ export async function getEssentialsOrderStats() {
     shipped: all.filter(o => o.status === "shipped").length,
     delivered: all.filter(o => o.status === "delivered").length,
   };
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// RACE 14 — Grace Consciousness DB Helpers
+// ══════════════════════════════════════════════════════════════════════
+
+export async function getGracePreferences(profileId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db.select().from(gracePreferences).where(eq(gracePreferences.profileId, profileId)).limit(1);
+  return rows[0] || null;
+}
+
+export async function upsertGracePreferences(profileId: number, data: Partial<{
+  userId: number;
+  personality: "angel" | "coach" | "fierce" | "bestfriend" | "antithesis";
+  expertise: string;
+  scheduleType: "early_bird" | "nine_to_five" | "night_shift" | "irregular" | "stay_at_home";
+  wakeTime: string;
+  sleepTime: string;
+  consciousnessTier: "free" | "essentials" | "plus";
+  hapticsEnabled: boolean;
+  kamiMomentEnabled: boolean;
+  kamiMomentTime: string;
+  graceHomeSetting: string;
+  lastDailySelfAt: Date;
+  lastVulnerabilityAt: Date;
+  lastSelfCareCheckAt: Date;
+}>) {
+  const db = await getDb();
+  if (!db) return null;
+  const existing = await getGracePreferences(profileId);
+  if (existing) {
+    await db.update(gracePreferences).set(data).where(eq(gracePreferences.profileId, profileId));
+    return { ...existing, ...data };
+  } else {
+    const result = await db.insert(gracePreferences).values({ profileId, ...data });
+    return { profileId, ...data, id: result[0].insertId };
+  }
+}
+
+export async function createReferralCode(profileId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const code = `grace-${profileId}-${Math.random().toString(36).substring(2, 8)}`;
+  await db.insert(graceReferrals).values({ referrerProfileId: profileId, referralCode: code });
+  return code;
+}
+
+export async function getReferralsByProfile(profileId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(graceReferrals).where(eq(graceReferrals.referrerProfileId, profileId));
+}
+
+export async function claimReferral(referralCode: string, referredProfileId: number, referredName: string) {
+  const db = await getDb();
+  if (!db) return false;
+  const rows = await db.select().from(graceReferrals).where(eq(graceReferrals.referralCode, referralCode)).limit(1);
+  if (!rows[0] || rows[0].status !== "pending") return false;
+  await db.update(graceReferrals).set({
+    referredProfileId,
+    referredName,
+    status: "joined",
+    joinedAt: new Date(),
+  }).where(eq(graceReferrals.referralCode, referralCode));
+  return true;
+}
+
+export async function countFriendsWithGrace(profileId: number) {
+  const db = await getDb();
+  if (!db) return 0;
+  const rows = await db.select().from(graceReferrals)
+    .where(and(eq(graceReferrals.referrerProfileId, profileId), eq(graceReferrals.status, "joined")));
+  return rows.length;
+}
+
+export async function countNeighborsWithGrace() {
+  const db = await getDb();
+  if (!db) return 0;
+  const rows = await db.select().from(gracePersonProfiles);
+  return rows.length;
 }

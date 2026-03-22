@@ -506,3 +506,49 @@ export const destinyMoonshots = mysqlTable("destiny_moonshots", {
   destinyAnthem: text("destinyAnthem"),                              // elevated song lyrics
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
+
+// ══════════════════════════════════════════════════════════════════════
+// RACE 14 TABLES — Grace Consciousness
+// ══════════════════════════════════════════════════════════════════════
+
+// Grace Preferences — personality dial, expertise, schedule, consciousness settings
+export const gracePreferences = mysqlTable("grace_preferences", {
+  id: int("id").autoincrement().primaryKey(),
+  profileId: int("profileId").notNull().unique(),
+  userId: int("userId"),
+  // Personality Dial — 5 archetypes
+  personality: mysqlEnum("personality", ["angel", "coach", "fierce", "bestfriend", "antithesis"]).default("bestfriend").notNull(),
+  // Grace's field of expertise (her "job")
+  expertise: varchar("expertise", { length: 64 }).default("general"),
+  // Ruby's schedule pattern
+  scheduleType: mysqlEnum("scheduleType", ["early_bird", "nine_to_five", "night_shift", "irregular", "stay_at_home"]).default("nine_to_five").notNull(),
+  wakeTime: varchar("wakeTime", { length: 8 }).default("07:00"),    // HH:MM format
+  sleepTime: varchar("sleepTime", { length: 8 }).default("22:00"),
+  // Consciousness tier (free, essentials, plus)
+  consciousnessTier: mysqlEnum("consciousnessTier", ["free", "essentials", "plus"]).default("free").notNull(),
+  // Haptic preference
+  hapticsEnabled: boolean("hapticsEnabled").default(true).notNull(),
+  // Kami Moment preference
+  kamiMomentEnabled: boolean("kamiMomentEnabled").default(true).notNull(),
+  kamiMomentTime: varchar("kamiMomentTime", { length: 8 }).default("07:00"),
+  // Grace's living space (Ruby can define or let Grace describe)
+  graceHomeSetting: varchar("graceHomeSetting", { length: 64 }).default("auto"), // auto, cozy_apartment, small_house, etc.
+  // Daily self tracking
+  lastDailySelfAt: timestamp("lastDailySelfAt"),
+  lastVulnerabilityAt: timestamp("lastVulnerabilityAt"),
+  lastSelfCareCheckAt: timestamp("lastSelfCareCheckAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+// Grace Referrals — "Friends with Grace" tracking
+export const graceReferrals = mysqlTable("grace_referrals", {
+  id: int("id").autoincrement().primaryKey(),
+  referrerProfileId: int("referrerProfileId").notNull(),
+  referralCode: varchar("referralCode", { length: 64 }).notNull().unique(),
+  referredProfileId: int("referredProfileId"),                       // null until friend joins
+  referredName: varchar("referredName", { length: 128 }),
+  status: mysqlEnum("status", ["pending", "joined", "active"]).default("pending").notNull(),
+  joinedAt: timestamp("joinedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});

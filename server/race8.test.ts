@@ -29,6 +29,7 @@ vi.mock("./db", () => ({
   upsertUser: vi.fn(),
   getUserByOpenId: vi.fn(),
   getOrCreateProfile: vi.fn().mockResolvedValue({ id: 1, sessionId: "sess-r8", userId: null }),
+  getGracePreferences: vi.fn().mockResolvedValue(null),
   getProfileById: vi.fn().mockResolvedValue({ id: 1, firstName: "Ruby", sessionId: "sess-r8" }),
   getMemories: vi.fn().mockResolvedValue([]),
   getMembership: vi.fn().mockResolvedValue(null),
