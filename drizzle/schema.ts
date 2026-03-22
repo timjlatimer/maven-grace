@@ -552,3 +552,24 @@ export const graceReferrals = mysqlTable("grace_referrals", {
   joinedAt: timestamp("joinedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
+
+// ─── Push Subscriptions (Race 16) ──────────────────────────────────
+export const pushSubscriptions = mysqlTable("push_subscriptions", {
+  id: int("id").autoincrement().primaryKey(),
+  profileId: int("profileId").notNull(),
+  endpoint: text("endpoint").notNull(),
+  p256dh: varchar("p256dh", { length: 256 }).notNull(),
+  auth: varchar("auth", { length: 128 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+
+// ─── Conversation Summaries (Race 16) ──────────────────────────────
+export const conversationSummaries = mysqlTable("conversation_summaries", {
+  id: int("id").autoincrement().primaryKey(),
+  profileId: int("profileId").notNull(),
+  summary: text("summary").notNull(),             // 3-sentence LLM summary
+  messageCount: int("messageCount").default(0),    // how many messages summarized
+  lastConversationAt: timestamp("lastConversationAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});

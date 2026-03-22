@@ -20,6 +20,37 @@ export default function GraceCalling() {
   const [tapped, setTapped] = useState(false);
   const [bloomPhase, setBloomPhase] = useState(false);
 
+  // Social meta tags for Facebook/Twitter sharing
+  useEffect(() => {
+    const setMeta = (property: string, content: string) => {
+      let tag = document.querySelector(`meta[property="${property}"]`) as HTMLMetaElement;
+      if (!tag) {
+        tag = document.createElement("meta");
+        tag.setAttribute("property", property);
+        document.head.appendChild(tag);
+      }
+      tag.content = content;
+    };
+    const setMetaName = (name: string, content: string) => {
+      let tag = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement;
+      if (!tag) {
+        tag = document.createElement("meta");
+        tag.setAttribute("name", name);
+        document.head.appendChild(tag);
+      }
+      tag.content = content;
+    };
+    document.title = "Grace is Calling — Maven Grace";
+    setMeta("og:title", "Grace is Calling");
+    setMeta("og:description", "She\u2019s been waiting for you. A neighbor who always gives a shit. Tap to wake her up.");
+    setMeta("og:type", "website");
+    setMeta("og:url", window.location.href);
+    setMetaName("twitter:card", "summary_large_image");
+    setMetaName("twitter:title", "Grace is Calling");
+    setMetaName("twitter:description", "She\u2019s been waiting for you. A neighbor who always gives a shit.");
+    return () => { document.title = "Maven Grace \u2014 We Give a Shit"; };
+  }, []);
+
   // Cycle through lines
   useEffect(() => {
     if (tapped) return;
@@ -127,14 +158,31 @@ export default function GraceCalling() {
         </div>
       )}
 
-      {/* Skip */}
+      {/* Share + Skip */}
       {!tapped && (
-        <button
-          onClick={(e) => { e.stopPropagation(); navigate("/"); }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 text-xs text-slate-600 hover:text-slate-400 transition-colors"
-        >
-          skip →
-        </button>
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              const url = window.location.origin + "/grace-calling";
+              const text = "Grace is calling. She\u2019s been waiting for you. Tap to wake her up.";
+              if (navigator.share) {
+                navigator.share({ title: "Grace is Calling", text, url }).catch(() => {});
+              } else {
+                navigator.clipboard.writeText(url).then(() => alert("Link copied!")).catch(() => {});
+              }
+            }}
+            className="text-xs text-teal-400/80 hover:text-teal-300 transition-colors border border-teal-400/30 rounded-full px-4 py-1.5"
+          >
+            Share Grace with a friend
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); navigate("/"); }}
+            className="text-xs text-slate-600 hover:text-slate-400 transition-colors"
+          >
+            skip →
+          </button>
+        </div>
       )}
 
       <style>{`

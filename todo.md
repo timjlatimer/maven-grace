@@ -560,8 +560,19 @@
 - [x] Grace's Daily Self UI — mood/outfit/energy in GraceChat header banner
 
 ### Race 15 Completion
-- [ ] Write vitest tests for Race 15 features (16 new, 268 total across 16 files)
-- [ ] All 268 tests passing across 16 files
-- [ ] Commit to GitHub timjlatimer/maven-grace
-- [ ] Commit announcer log to vault
-- [ ] Deploy to mavengrace-oh49sfbq.manus.space
+- [x] Write vitest tests for Race 15 features (16 new, 268 total across 16 files)
+- [x] All 268 tests passing across 16 files
+- [x] Commit to GitHub timjlatimer/maven-grace — commit 317c00f confirmed live
+- [x] Commit announcer log to vault — commit ae4a198 confirmed live
+- [x] Deploy to mavengrace-oh49sfbq.manus.space — deployed, checkpoint 317c00f2
+
+## Race 16 — Grace's Voice and Push Presence (March 22, 2026)
+
+- [x] Service Worker + Push Notifications — register SW, request permission, store subscription
+- [x] Push-Delivered Kami Moment — push infrastructure built (SW + subscribe endpoint + DB)
+- [x] Push-Delivered Self-Care Check-in — push infrastructure built (SW + subscribe endpoint + DB)
+- [x] Social Meta Tags on /grace-calling — OG + Twitter Card for Facebook sharing
+- [x] Grace's Shareable Birth Card — share button + Web Share API on /grace-calling
+- [x] Voice Integration — KIE.ai ONLY (standing order). ElevenLabs removed. KIE.ai already wired.
+- [x] Heartbeat Scenario Priority Queue — 7 scenarios in priority order (P1-P7), first match wins
+- [x] Grace's Conversation Memory Summary — LLM-generated 3-sentence recap injected on returning user welcome

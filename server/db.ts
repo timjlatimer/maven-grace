@@ -5,7 +5,8 @@ import {
   gracePersonProfiles, graceMemory, graceConversations,
   trojanHorseEntries, songs, financialImpactLog,
   subscriptions, journeyMilestones, graceAmbientMessages,
-  essentialsOrders, gracePreferences, graceReferrals
+  essentialsOrders, gracePreferences, graceReferrals,
+  pushSubscriptions, conversationSummaries
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -1156,4 +1157,54 @@ export async function countNeighborsWithGrace() {
   if (!db) return 0;
   const rows = await db.select().from(gracePersonProfiles);
   return rows.length;
+}
+
+
+// ─── PUSH SUBSCRIPTIONS (Race 16) ──────────────────────────────────
+
+export async function savePushSubscription(profileId: number, endpoint: string, p256dh: string, auth: string) {
+  const db = await getDb();
+  if (!db) return null;
+  // Upsert — replace if same endpoint exists
+  const existing = await db.select().from(pushSubscriptions).where(eq(pushSubscriptions.endpoint, endpoint));
+  if (existing.length > 0) {
+    await db.update(pushSubscriptions).set({ profileId, p256dh, auth, updatedAt: new Date() }).where(eq(pushSubscriptions.endpoint, endpoint));
+    return existing[0];
+  }
+  const [result] = await db.insert(pushSubscriptions).values({ profileId, endpoint, p256dh, auth });
+  return { id: result.insertId };
+}
+
+export async function getPushSubscriptions(profileId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(pushSubscriptions).where(eq(pushSubscriptions.profileId, profileId));
+}
+
+export async function deletePushSubscription(endpoint: string) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(pushSubscriptions).where(eq(pushSubscriptions.endpoint, endpoint));
+}
+
+// ─── CONVERSATION SUMMARIES (Race 16) ──────────────────────────────
+
+export async function saveConversationSummary(profileId: number, summary: string, messageCount: number) {
+  const db = await getDb();
+  if (!db) return null;
+  // Only keep the latest summary per profile
+  const existing = await db.select().from(conversationSummaries).where(eq(conversationSummaries.profileId, profileId));
+  if (existing.length > 0) {
+    await db.update(conversationSummaries).set({ summary, messageCount, lastConversationAt: new Date() }).where(eq(conversationSummaries.profileId, profileId));
+    return existing[0];
+  }
+  const [result] = await db.insert(conversationSummaries).values({ profileId, summary, messageCount, lastConversationAt: new Date() });
+  return { id: result.insertId };
+}
+
+export async function getConversationSummary(profileId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db.select().from(conversationSummaries).where(eq(conversationSummaries.profileId, profileId));
+  return rows[0] ?? null;
 }

@@ -1,5 +1,6 @@
 import { COOKIE_NAME } from "@shared/const";
 import { textToSpeech, isKieAiConfigured } from "./kieai";
+// Voice provider: KIE.ai ONLY (standing order — no ElevenLabs)
 import { transcribeAudio } from "./_core/voiceTranscription";
 import { storagePut } from "./storage";
 import { TRPCError } from "@trpc/server";
@@ -715,7 +716,7 @@ MOOD: [uplifting/warm/empowering]
           throw new Error("KIE.AI voice is not configured on this server");
         }
         const audioUrl = await textToSpeech(input.text);
-        return { audioUrl };
+        return { audioUrl, provider: 'kieai' };
       }),
 
     /**
@@ -2370,6 +2371,89 @@ MOOD: [uplifting/warm/empowering]
           personality: prefs?.personality || 'bestfriend',
           tier: prefs?.consciousnessTier || 'free',
         };
+      }),
+  }),
+
+  // ══════════════════════════════════════════════════════════════════
+  // RACE 16 — PUSH NOTIFICATIONS + CONVERSATION MEMORY
+  // ══════════════════════════════════════════════════════════════════
+  push: router({
+    subscribe: publicProcedure
+      .input(z.object({
+        profileId: z.number(),
+        endpoint: z.string(),
+        p256dh: z.string(),
+        auth: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        await db.savePushSubscription(input.profileId, input.endpoint, input.p256dh, input.auth);
+        return { success: true };
+      }),
+
+    unsubscribe: publicProcedure
+      .input(z.object({ endpoint: z.string() }))
+      .mutation(async ({ input }) => {
+        await db.deletePushSubscription(input.endpoint);
+        return { success: true };
+      }),
+
+    getStatus: publicProcedure
+      .input(z.object({ profileId: z.number() }))
+      .query(async ({ input }) => {
+        const subs = await db.getPushSubscriptions(input.profileId);
+        return { subscribed: subs.length > 0, count: subs.length };
+      }),
+  }),
+
+  conversationMemory: router({
+    // Save a conversation summary after chat ends
+    saveSummary: publicProcedure
+      .input(z.object({
+        profileId: z.number(),
+        messages: z.array(z.object({
+          role: z.enum(['user', 'assistant']),
+          content: z.string(),
+        })),
+      }))
+      .mutation(async ({ input }) => {
+        if (input.messages.length < 4) return { success: false, reason: 'too_few_messages' };
+
+        // Use LLM to generate a 3-sentence summary
+        const conversationText = input.messages
+          .slice(-20) // Last 20 messages max
+          .map(m => `${m.role === 'user' ? 'Ruby' : 'Grace'}: ${m.content}`)
+          .join('\n');
+
+        try {
+          const response = await invokeLLM({
+            messages: [
+              {
+                role: 'system',
+                content: 'You are summarizing a conversation between Grace (AI companion) and Ruby (user). Write exactly 3 sentences capturing: (1) what Ruby shared or asked about, (2) how Grace helped, (3) Ruby\'s emotional state. Be warm and specific. Use Ruby\'s name.',
+              },
+              {
+                role: 'user',
+                content: `Summarize this conversation:\n\n${conversationText}`,
+              },
+            ],
+          });
+
+          const summary = String(response.choices?.[0]?.message?.content || '');
+          if (summary) {
+            await db.saveConversationSummary(input.profileId, summary, input.messages.length);
+            return { success: true, summary };
+          }
+        } catch (err) {
+          console.warn('[ConversationMemory] Summary generation failed:', err);
+        }
+        return { success: false, reason: 'llm_failed' };
+      }),
+
+    // Get the latest conversation summary for session context
+    getLatest: publicProcedure
+      .input(z.object({ profileId: z.number() }))
+      .query(async ({ input }) => {
+        return db.getConversationSummary(input.profileId);
       }),
   }),
 });

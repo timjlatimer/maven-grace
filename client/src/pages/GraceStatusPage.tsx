@@ -4,6 +4,7 @@ import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Battery, BatteryCharging, Heart, Zap, AlertTriangle, CheckCircle2, Clock, Moon, Sun } from "lucide-react";
+import PushNotificationToggle from "@/components/PushNotificationToggle";
 import { toast } from "sonner";
 
 const TIER_INFO: Record<string, { name: string; color: string; description: string; features: string[]; removed: string[] }> = {
@@ -218,6 +219,13 @@ export default function GraceStatusPage() {
                 </p>
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Push Notifications */}
+        <Card className="mb-4 border-teal-200 dark:border-teal-800 bg-teal-50/50 dark:bg-teal-950/20">
+          <CardContent className="pt-6">
+            <PushNotificationToggle />
           </CardContent>
         </Card>
 

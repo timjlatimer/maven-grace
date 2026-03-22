@@ -121,7 +121,26 @@ export default function GraceChat() {
   const startMutation = trpc.trojanHorse.start.useMutation();
   const updateStepMutation = trpc.trojanHorse.updateStep.useMutation();
   const speakMutation = trpc.voice.speak.useMutation();
+  const saveSummaryMutation = trpc.conversationMemory.saveSummary.useMutation();
   const utils = trpc.useUtils();
+
+  // Load conversation summary for context
+  const { data: lastSummary } = trpc.conversationMemory.getLatest.useQuery(
+    { profileId: profileId! },
+    { enabled: !!profileId, staleTime: Infinity }
+  );
+
+  // Save conversation summary when leaving chat
+  useEffect(() => {
+    return () => {
+      if (profileId && messages.length >= 4) {
+        saveSummaryMutation.mutate({
+          profileId,
+          messages: messages.map(m => ({ role: m.role, content: m.content })),
+        });
+      }
+    };
+  }, []); // Only on unmount
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -222,9 +241,11 @@ export default function GraceChat() {
           const name = sessionContext.profile?.firstName || "";
           const memoryHints = sessionContext.memories.slice(0, 5).map(m => m.fact).join("; ");
 
+          // Inject conversation memory if available
+          const memorySummary = lastSummary?.summary ? ` Last time you spoke: ${lastSummary.summary}` : "";
           const welcomeBack = await chatMutation.mutateAsync({
             sessionId,
-            message: `[SYSTEM: This is a RETURNING user${name ? ` named ${name}` : ""}. They have ${sessionContext.recentMessages.length} prior messages. ${memoryHints ? `You remember: ${memoryHints}.` : ""} Welcome them back warmly — use their name if you know it. Be genuinely happy to see them. Ask what's on their mind today. Keep it to 2-3 sentences. Do NOT re-introduce yourself or explain what Maven is — they already know.]`,
+            message: `[SYSTEM: This is a RETURNING user${name ? ` named ${name}` : ""}. They have ${sessionContext.recentMessages.length} prior messages. ${memoryHints ? `You remember: ${memoryHints}.` : ""}${memorySummary} Welcome them back warmly — use their name if you know it. Reference something specific from your last conversation if you can. Be genuinely happy to see them. Ask what's on their mind today. Keep it to 2-3 sentences. Do NOT re-introduce yourself or explain what Maven is — they already know.]`,
             context: { step: 9, mode: "returning" },
           });
 
