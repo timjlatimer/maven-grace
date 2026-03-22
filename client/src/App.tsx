@@ -1,8 +1,13 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Route, Switch } from "wouter";
+import { useState, useEffect } from "react";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import GraceBirthScreen, { hasBirthBeenSeen } from "./components/GraceBirthScreen";
+import GraceHeartbeat, { getSessionDismissedScenario } from "./components/GraceHeartbeat";
+import { trpc } from "@/lib/trpc";
+import { useGraceSession } from "@/hooks/useGraceSession";
 import Home from "./pages/Home";
 import GraceChat from "./pages/GraceChat";
 import Dashboard from "./pages/Dashboard";
@@ -23,6 +28,7 @@ import StoryLibrary from "./pages/StoryLibrary";
 import VillageDirectory from "./pages/VillageDirectory";
 import NotFound from "./pages/NotFound";
 import GraceBattery from "./components/GraceBattery";
+import KpiTicker from "./components/KpiTicker";
 import CommunityCredits from "./pages/CommunityCredits";
 import PaydaySetup from "./pages/PaydaySetup";
 import CrisisBeacon from "./pages/CrisisBeacon";
@@ -65,16 +71,91 @@ function Router() {
   );
 }
 
+/**
+ * HeartbeatOrchestrator — decides which heartbeat (if any) to show.
+ * Priority: birth screen (first ever) > server-driven heartbeat scenarios
+ */
+function HeartbeatOrchestrator({ children }: { children: React.ReactNode }) {
+  const { profileId } = useGraceSession();
+
+  // Birth screen state — only shows once per device
+  const [birthComplete, setBirthComplete] = useState(() => hasBirthBeenSeen());
+
+  // Server heartbeat state — for returning users
+  const [heartbeatComplete, setHeartbeatComplete] = useState(() => {
+    // Already dismissed this session?
+    return getSessionDismissedScenario() !== null;
+  });
+
+  // Track last visit timestamp in localStorage
+  const [lastVisitTimestamp] = useState(() => {
+    try {
+      const stored = localStorage.getItem("maven-grace-last-visit");
+      const ts = stored ? parseInt(stored, 10) : null;
+      // Update last visit to now
+      localStorage.setItem("maven-grace-last-visit", Date.now().toString());
+      return ts;
+    } catch {
+      return null;
+    }
+  });
+
+  // Fetch server heartbeat (only for returning users with a profile)
+  const heartbeatQuery = trpc.heartbeat.getCurrent.useQuery(
+    {
+      profileId: profileId ?? undefined,
+      lastVisitTimestamp: lastVisitTimestamp ?? undefined,
+    },
+    {
+      enabled: birthComplete && !heartbeatComplete && !!profileId,
+      staleTime: Infinity, // Only fetch once per session
+    }
+  );
+
+  const heartbeatData = heartbeatQuery.data;
+  const showServerHeartbeat =
+    birthComplete &&
+    !heartbeatComplete &&
+    !!heartbeatData?.scenario &&
+    heartbeatData.lines.length > 0;
+
+  return (
+    <>
+      {/* Birth screen — first ever visit */}
+      {!birthComplete && (
+        <GraceBirthScreen onComplete={() => setBirthComplete(true)} />
+      )}
+
+      {/* Server-driven heartbeat scenarios */}
+      {showServerHeartbeat && heartbeatData && (
+        <GraceHeartbeat
+          scenario={heartbeatData.scenario!}
+          lines={heartbeatData.lines as { main: string; sub: string }[]}
+          color={heartbeatData.color}
+          animStyle={heartbeatData.animStyle as any}
+          greeting={heartbeatData.greeting}
+          onComplete={() => setHeartbeatComplete(true)}
+        />
+      )}
+
+      {children}
+    </>
+  );
+}
+
 function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider defaultTheme="light">
         <TooltipProvider>
           <Toaster />
-          <GraceBattery />
-          <div style={{ paddingTop: "32px" }}>
-            <Router />
-          </div>
+          <HeartbeatOrchestrator>
+            <GraceBattery />
+            <KpiTicker />
+            <div style={{ paddingTop: "32px", paddingBottom: "56px" }}>
+              <Router />
+            </div>
+          </HeartbeatOrchestrator>
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

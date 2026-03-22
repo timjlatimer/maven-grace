@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useGraceSession } from "@/hooks/useGraceSession";
@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import GraceVoiceToggle from "./GraceVoiceToggle";
 
 // ── Color helpers ──────────────────────────────────────────────────────
 function getBatteryColor(level: number): string {
@@ -269,10 +270,13 @@ export default function GraceBattery() {
             </span>
           </button>
 
-          {/* Center: subtle Maven mark */}
-          <span className="text-[9px] text-muted-foreground font-medium tracking-wide opacity-50 shrink-0">
-            MAVEN
-          </span>
+          {/* Center: voice toggle + Maven mark */}
+          <div className="flex items-center gap-1">
+            <GraceVoiceToggle />
+            <span className="text-[9px] text-muted-foreground font-medium tracking-wide opacity-50 shrink-0">
+              MAVEN
+            </span>
+          </div>
 
           {/* Right: Dignity Score (demo — starting state) */}
           <button
@@ -328,10 +332,13 @@ export default function GraceBattery() {
           </span>
         </button>
 
-        {/* Center: subtle Maven mark */}
-        <span className="text-[9px] text-muted-foreground font-medium tracking-wide opacity-50 shrink-0">
-          MAVEN
-        </span>
+        {/* Center: voice toggle + Maven mark */}
+        <div className="flex items-center gap-1">
+          <GraceVoiceToggle />
+          <span className="text-[9px] text-muted-foreground font-medium tracking-wide opacity-50 shrink-0">
+            MAVEN
+          </span>
+        </div>
 
         {/* Right: Dignity Score */}
         <button

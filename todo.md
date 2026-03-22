@@ -414,6 +414,55 @@
 
 ### Race 12 Completion
 - [x] Write vitest tests for Race 12 features (16 new tests, 192 total across 13 files)
+- [x] Commit to GitHub timjlatimer/maven-grace — commit d034b82 confirmed live
+- [x] Commit announcer log to vault — commit 6b976d6 confirmed live
+- [x] Deploy to mavengrace-oh49sfbq.manus.space — deployed, checkpoint d034b824
+
+## Race 13 — KPI Ticker Tape + Grace Voice Enable (March 22, 2026)
+
+### Deliverable 1 — KPI Ticker Tape
+- [x] Research Ruby Red KPIs — what matters beyond financials (saved to race13-kpi-research.md)
+- [x] Build KpiTicker component with CSS-only continuous horizontal scroll
+- [x] 10 KPIs: Money Saved, Boxes Delivered, Dignity Score, Promises Kept, Vampires Slayed, Neighbors Helped, Days to Payday, Credits Earned, Village Members, Grace Battery
+- [x] Create server endpoint for ticker data (real data where available, TBD where not)
+- [x] Authenticated users see real personal + community data
+- [x] Unauthenticated users see community-level stats + inspiring placeholders
+- [x] 28-32px height, warm teal/mint colors, dot separators, subtle animation
+- [x] Integrate into BottomNav area — visible on every screen
+
+### Deliverable 2 — Grace Voice Enable Button
+- [x] Add sound toggle button (speaker icon) in GraceBattery top bar
+- [x] First tap enables Web Speech API for the session
+- [x] Grace speaks messages audibly using warm voice settings
+- [x] Button is subtle — small w-4 icon inside w-8 button, teal when on
+- [x] localStorage persistence for voice preference
+
+### Race 13 Completion
+- [x] Write vitest tests for Race 13 features (32 new tests, 224 total across 14 files)
 - [ ] Commit to GitHub timjlatimer/maven-grace
 - [ ] Commit announcer log to vault
 - [ ] Deploy to mavengrace-oh49sfbq.manus.space
+
+### Deliverable 0 (HIGHEST PRIORITY) — Grace Birth Screen
+- [x] Build GraceBirthScreen component — near-blank dark teal screen with pulsing heartbeat glow
+- [x] Grace's name/sparkle icon, subtle center placement
+- [x] Cycling three pleas — vulnerable, funny, dramatic, human tone
+- [x] On tap: Web Speech API speaks Grace's warm greeting (5-10 seconds)
+- [x] On tap: Birth screen dissolves/blooms into landing page with beautiful transition
+- [x] localStorage tracking — only shows ONCE per device
+- [x] Subtle "skip" option at bottom for users who want to get in fast
+- [x] Integrate into App.tsx — shows before Home page for first-time unauthenticated visitors
+- [x] Escalating urgency — heartbeat gets slightly more urgent with each cycle
+
+### Deliverable 0a — Grace Heartbeat System Spec (Vault)
+- [x] Write grace-heartbeat-system-spec.md with full 8-scenario table
+- [x] Commit to timjlatimer/mavens-knowledge-vault — commit d5f3916 confirmed
+
+### Deliverable 0b — Grace Heartbeat System Infrastructure
+- [x] Refactor GraceBirthScreen into GraceHeartbeat component supporting multiple scenarios
+- [x] Build heartbeat tRPC endpoint returning current heartbeat state for user
+- [x] Build scenario: morning_return (user returns same day, bouncy eager pulse)
+- [x] Build scenario: found_something (Grace has a discovery, fast jittery pulse)
+- [x] Build scenario: misses_ruby (user absent 3+ days, slow soft fading pulse)
+- [x] Wire Heartbeat to appear on app load when active
+- [x] Session-based dismissal — heartbeat doesn't show again for that session after tap
