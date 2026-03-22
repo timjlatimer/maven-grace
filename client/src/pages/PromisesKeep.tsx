@@ -79,7 +79,7 @@ export default function PromisesKeep() {
         {user && <span className="text-xs text-muted-foreground ml-auto">Nana the Promise Keeper</span>}
       </div>
 
-      <div className="w-full max-w-lg mx-auto px-4 py-6 space-y-5">
+      <div className="w-full max-w-sm mx-auto px-4 py-6 space-y-5">
         {/* Stats Row */}
         <div className="grid grid-cols-3 gap-3">
           <Card className="bg-primary/5 border-primary/20">

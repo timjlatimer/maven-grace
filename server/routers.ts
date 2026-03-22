@@ -238,6 +238,35 @@ export const appRouter = router({
       .query(async ({ input }) => {
         return db.getMemories(input.profileId);
       }),
+
+    // ─── RETURNING USER CONTEXT ─────────────────────────────────
+    // Loads prior session data so Grace can greet returning users warmly
+    getSessionContext: publicProcedure
+      .input(z.object({ sessionId: z.string() }))
+      .query(async ({ input }) => {
+        const profile = await db.getOrCreateProfile(input.sessionId);
+        if (!profile) return { isReturning: false, profile: null, memories: [], recentMessages: [] };
+
+        const memories = await db.getMemories(profile.id);
+        const history = await db.getConversationHistory(input.sessionId, 10);
+
+        // A returning user has at least 1 prior conversation message
+        const isReturning = history.length > 0;
+
+        return {
+          isReturning,
+          profile: {
+            id: profile.id,
+            firstName: profile.firstName || null,
+            city: profile.city || null,
+          },
+          memories: memories.slice(0, 10).map(m => ({ category: m.category, fact: m.fact })),
+          recentMessages: history.slice(-6).map(h => ({
+            role: h.role as "user" | "assistant",
+            content: h.content,
+          })),
+        };
+      }),
   }),
 
   // ─── TROJAN HORSE ───────────────────────────────────────────────

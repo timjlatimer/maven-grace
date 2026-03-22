@@ -41,7 +41,7 @@ export default function BottomNav() {
       {showMore && (
         <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={() => setShowMore(false)}>
           <div
-            className="absolute bottom-14 left-0 right-0 bg-card border-t border-border rounded-t-2xl p-3 w-full max-w-lg mx-auto"
+            className="absolute bottom-14 left-0 right-0 bg-card border-t border-border rounded-t-2xl p-3 w-full max-w-sm mx-auto"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-3">

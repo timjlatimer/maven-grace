@@ -83,7 +83,7 @@ export default function AnthemLanding({ token }: AnthemLandingProps) {
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-[#2DD4BF]/10 via-transparent to-[#FB7185]/10" />
-        <div className="relative w-full max-w-lg mx-auto px-6 pt-12 pb-8 text-center">
+        <div className="relative w-full max-w-sm mx-auto px-6 pt-12 pb-8 text-center">
           <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm rounded-full px-4 py-2 mb-6 shadow-sm">
             <Gift className="w-4 h-4 text-[#FB7185]" />
             <span className="text-sm font-medium text-[#4a4a6a]">A Gift Anthem from {senderName}</span>
@@ -104,7 +104,7 @@ export default function AnthemLanding({ token }: AnthemLandingProps) {
 
       {/* Song Card */}
       {song && (
-        <div className="w-full max-w-lg mx-auto px-6 pb-6">
+        <div className="w-full max-w-sm mx-auto px-6 pb-6">
           <Card className="border-0 shadow-xl overflow-hidden">
             {/* Song Header */}
             <div className="bg-gradient-to-r from-[#2DD4BF] to-[#6EE7B7] p-6 text-white">
@@ -159,7 +159,7 @@ export default function AnthemLanding({ token }: AnthemLandingProps) {
       )}
 
       {/* CTA Section — Meet Grace */}
-      <div className="w-full max-w-lg mx-auto px-6 pb-12">
+      <div className="w-full max-w-sm mx-auto px-6 pb-12">
         <Card className="border-0 shadow-lg bg-gradient-to-br from-[#1a1a2e] to-[#2a2a4e] text-white overflow-hidden">
           <CardContent className="p-8 text-center space-y-4">
             <div className="w-16 h-16 bg-[#2DD4BF]/20 rounded-full flex items-center justify-center mx-auto">

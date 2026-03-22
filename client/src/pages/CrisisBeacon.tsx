@@ -41,7 +41,7 @@ export default function CrisisBeacon() {
   if (beaconSent) {
     return (
       <div className="min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-gradient-to-b from-purple-50 to-white dark:from-gray-900 dark:to-gray-950 flex items-center justify-center">
-        <div className="container max-w-lg py-6 text-center">
+        <div className="container max-w-sm py-6 text-center">
           <div className="w-20 h-20 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
             <Heart className="w-10 h-10 text-purple-600 animate-pulse" />
           </div>
@@ -101,7 +101,7 @@ export default function CrisisBeacon() {
 
   return (
     <div className="min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-gradient-to-b from-purple-50 to-white dark:from-gray-900 dark:to-gray-950">
-      <div className="container max-w-lg py-6">
+      <div className="container max-w-sm py-6">
         <button onClick={() => navigate("/")} className="flex items-center gap-2 text-sm text-muted-foreground mb-4 hover:text-foreground">
           <ArrowLeft className="w-4 h-4" /> Back
         </button>

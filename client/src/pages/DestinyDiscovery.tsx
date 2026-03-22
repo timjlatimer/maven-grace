@@ -79,7 +79,7 @@ export default function DestinyDiscovery() {
         <span className="text-xs text-muted-foreground ml-auto">North the Navigator</span>
       </div>
 
-      <div className="w-full max-w-lg mx-auto px-4 py-6 space-y-6">
+      <div className="w-full max-w-sm mx-auto px-4 py-6 space-y-6">
         {/* Mark Twain Quote */}
         <Card className="bg-gradient-to-br from-primary/5 via-accent/10 to-lift/5 border-primary/20">
           <CardContent className="py-6 text-center">

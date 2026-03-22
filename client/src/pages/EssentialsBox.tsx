@@ -53,7 +53,7 @@ export default function EssentialsBox() {
         <h1 className="text-lg font-bold text-foreground">Get Your Free Box</h1>
       </div>
 
-      <div className="w-full max-w-lg mx-auto px-4 py-6 space-y-5">
+      <div className="w-full max-w-sm mx-auto px-4 py-6 space-y-5">
         <AnimatePresence mode="wait">
           {submitted ? (
             <motion.div

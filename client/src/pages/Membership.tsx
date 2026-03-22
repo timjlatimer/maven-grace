@@ -150,7 +150,7 @@ export default function Membership() {
     <div className="min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-cream pb-24">
       {/* Header */}
       <div className="bg-gradient-to-br from-teal-600 to-teal-700 text-white px-4 pt-12 pb-8">
-        <div className="w-full max-w-lg mx-auto text-center">
+        <div className="w-full max-w-sm mx-auto text-center">
           <div className="flex items-center justify-center gap-2 mb-3">
             <Truck className="w-6 h-6" />
             <span className="text-teal-200 font-semibold text-sm uppercase tracking-wide">Maven Membership</span>
@@ -165,7 +165,7 @@ export default function Membership() {
 
       {/* Current membership banner */}
       {currentTier && currentTier !== "observer" && (
-        <div className="w-full max-w-lg mx-auto px-4 mt-4">
+        <div className="w-full max-w-sm mx-auto px-4 mt-4">
           <div className="bg-teal-50 border border-teal-200 rounded-xl p-4 flex items-center gap-3">
             <CheckCircle className="w-5 h-5 text-teal-600 flex-shrink-0" />
             <div>
@@ -179,7 +179,7 @@ export default function Membership() {
       )}
 
       {/* Tier cards */}
-      <div className="w-full max-w-lg mx-auto px-4 mt-6 space-y-4">
+      <div className="w-full max-w-sm mx-auto px-4 mt-6 space-y-4">
         {TIERS.map((tier) => {
           const Icon = tier.icon;
           const isCurrent = currentTier === tier.id;
@@ -262,7 +262,7 @@ export default function Membership() {
       </div>
 
       {/* What's in the box */}
-      <div className="w-full max-w-lg mx-auto px-4 mt-8">
+      <div className="w-full max-w-sm mx-auto px-4 mt-8">
         <Card className="p-5 bg-amber-50 border-amber-200">
           <h3 className="font-bold text-amber-900 mb-3 flex items-center gap-2">
             <Package className="w-5 h-5" />
@@ -280,7 +280,7 @@ export default function Membership() {
       </div>
 
       {/* Bottom CTA */}
-      <div className="w-full max-w-lg mx-auto px-4 mt-6 text-center">
+      <div className="w-full max-w-sm mx-auto px-4 mt-6 text-center">
         <p className="text-gray-500 text-sm">Already a member? <Link href="/grace" className="text-teal-600 font-semibold">Chat with Grace</Link></p>
       </div>
     </div>

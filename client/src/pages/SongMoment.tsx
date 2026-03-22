@@ -196,7 +196,7 @@ export default function SongMoment() {
         <h1 className="text-lg font-bold text-foreground">Your Anthem</h1>
       </div>
 
-      <div className="w-full max-w-lg mx-auto px-4 py-6 space-y-6">
+      <div className="w-full max-w-sm mx-auto px-4 py-6 space-y-6">
         {/* Voice status badge */}
         <VoiceStatusBadge />
 

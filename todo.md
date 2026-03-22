@@ -330,4 +330,31 @@
 - [x] Write vitest tests for Race 9 features (16 new tests, 146 total across 10 files)
 - [x] Commit to GitHub timjlatimer/maven-grace — commit 665d276 confirmed live
 - [x] Commit announcer log to vault — commit 484a909 confirmed live
-- [ ] Deploy to mavengrace-oh49sfbq.manus.space — IN PROGRESS
+- [x] Deploy to mavengrace-oh49sfbq.manus.space — deployed, checkpoint ee472147
+
+## Race 10 — Grace's Memory + Conversation Quality Sprint (March 22, 2026)
+
+### P0 — Definitive Mobile Layout Fix
+- [x] Replace max-w-lg (512px) with max-w-sm (384px) across ALL 25 page/component files
+- [x] GraceBattery bar already fits 390px (verified)
+- [x] BottomNav already fits 390px with flex-1 tabs (verified)
+
+### P1 — Grace Conversation Memory Improvements
+- [x] Grace remembers returning users — getSessionContext endpoint loads prior conversation + memories
+- [x] Show "Welcome back" message with user's name if Grace has memories from prior sessions
+- [x] Grace chat shows last 6 messages from previous session as history with "Earlier conversation" / "Now" dividers
+
+### P2 — Onboarding Flow Clarity
+- [x] Add progress indicator to Trojan Horse flow — 8 dots in chat header showing current step
+- [x] Grace explicitly tells Ruby what Maven includes during onboarding (system prompt already covers this)
+- [x] Add "What is Maven?" expandable FAQ section on Home page — 5 questions covering Maven, pricing, savings, privacy, Essentials Box
+
+### P3 — Navigation Quick Actions
+- [x] Add quick-action cards on Dashboard for empty state: "Slay a Vampire", "Set Up Budget", "Get Your Free Box", "Talk to Grace"
+- [x] Back to Grace accessible via BottomNav on all pages (already present)
+
+### Race 10 Completion
+- [x] Write vitest tests for Race 10 features (16 new tests, 162 total across 11 files)
+- [ ] Commit to GitHub timjlatimer/maven-grace
+- [ ] Commit announcer log to vault
+- [ ] Deploy to mavengrace-oh49sfbq.manus.space

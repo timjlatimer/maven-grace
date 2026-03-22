@@ -59,7 +59,7 @@ export default function StoryLibrary() {
         <span className="text-xs text-muted-foreground ml-auto">Jolene the Journalist</span>
       </div>
 
-      <div className="w-full max-w-lg mx-auto px-4 py-6 space-y-6">
+      <div className="w-full max-w-sm mx-auto px-4 py-6 space-y-6">
         {/* Intro */}
         <Card className="bg-gradient-to-br from-warmth/10 via-accent/10 to-primary/5 border-warmth/20">
           <CardContent className="py-6 text-center">

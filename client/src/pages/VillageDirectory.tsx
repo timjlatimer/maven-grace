@@ -90,7 +90,7 @@ export default function VillageDirectory() {
         <h1 className="text-lg font-bold text-foreground">The Village</h1>
       </div>
 
-      <div className="w-full max-w-lg mx-auto px-4 py-6 space-y-6">
+      <div className="w-full max-w-sm mx-auto px-4 py-6 space-y-6">
         {/* Intro */}
         <Card className="bg-gradient-to-br from-primary/5 via-accent/10 to-lift/5 border-primary/20">
           <CardContent className="py-6 text-center">

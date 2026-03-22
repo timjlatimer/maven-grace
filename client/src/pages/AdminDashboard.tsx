@@ -56,7 +56,7 @@ export default function AdminDashboard() {
     <div className="min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-cream pb-24">
       {/* Header */}
       <div className="bg-gradient-to-br from-gray-800 to-gray-900 text-white px-4 pt-12 pb-8">
-        <div className="w-full max-w-lg mx-auto">
+        <div className="w-full max-w-sm mx-auto">
           <div className="flex items-center gap-2 mb-2">
             <BarChart3 className="w-5 h-5 text-gray-400" />
             <span className="text-gray-400 text-sm font-semibold uppercase tracking-wide">Admin Dashboard</span>
@@ -66,7 +66,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="w-full max-w-lg mx-auto px-4 mt-4 space-y-4">
+      <div className="w-full max-w-sm mx-auto px-4 mt-4 space-y-4">
         {/* Key stats grid */}
         <div className="grid grid-cols-2 gap-3">
           {statCards.map((stat) => {

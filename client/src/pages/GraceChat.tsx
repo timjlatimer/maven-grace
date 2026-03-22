@@ -18,6 +18,7 @@ type ChatMessage = {
   content: string;
   audioUrl?: string | null;
   audioLoading?: boolean;
+  isHistory?: boolean; // marks messages loaded from prior session
 };
 
 function VoiceToggle({
@@ -61,33 +62,40 @@ function GraceMessageBubble({
         <Sparkles className="w-3.5 h-3.5 text-primary" />
       </div>
       <div className="flex-1 min-w-0 space-y-1.5">
-        <div className="rounded-2xl rounded-bl-md bg-muted px-4 py-2.5 text-sm text-foreground">
+        <div className={cn(
+          "rounded-2xl rounded-bl-md px-4 py-2.5 text-sm",
+          message.isHistory
+            ? "bg-muted/50 text-foreground/70"
+            : "bg-muted text-foreground"
+        )}>
           <div className="prose prose-sm dark:prose-invert max-w-none">
             <Streamdown>{message.content}</Streamdown>
           </div>
         </div>
 
-        {message.audioUrl ? (
-          <GraceAudioPlayer
-            audioUrl={message.audioUrl}
-            compact={false}
-            label="Grace speaking"
-            className="max-w-xs"
-          />
-        ) : message.audioLoading ? (
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground px-1">
-            <Loader2 className="w-3 h-3 animate-spin" />
-            <span>Grace is finding her voice...</span>
-          </div>
-        ) : (
-          <button
-            onClick={() => onRequestVoice(message.content)}
-            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors px-1"
-            title="Hear Grace speak this message"
-          >
-            <Volume2 className="w-3 h-3" />
-            <span>Hear this</span>
-          </button>
+        {!message.isHistory && (
+          message.audioUrl ? (
+            <GraceAudioPlayer
+              audioUrl={message.audioUrl}
+              compact={false}
+              label="Grace speaking"
+              className="max-w-xs"
+            />
+          ) : message.audioLoading ? (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground px-1">
+              <Loader2 className="w-3 h-3 animate-spin" />
+              <span>Grace is finding her voice...</span>
+            </div>
+          ) : (
+            <button
+              onClick={() => onRequestVoice(message.content)}
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors px-1"
+              title="Hear Grace speak this message"
+            >
+              <Volume2 className="w-3 h-3" />
+              <span>Hear this</span>
+            </button>
+          )
         )}
       </div>
     </div>
@@ -112,6 +120,7 @@ export default function GraceChat() {
   const startMutation = trpc.trojanHorse.start.useMutation();
   const updateStepMutation = trpc.trojanHorse.updateStep.useMutation();
   const speakMutation = trpc.voice.speak.useMutation();
+  const utils = trpc.useUtils();
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -170,27 +179,79 @@ export default function GraceChat() {
   );
 
   // ─── GRACE SPEAKS FIRST ─────────────────────────────────────────────
-  // Auto-start the Trojan Horse flow on mount. No button. No barrier.
-  // Grace's voice is the first thing Ruby hears.
+  // Auto-start the conversation on mount. For returning users, load history
+  // and greet warmly. For new users, start the Trojan Horse flow.
   useEffect(() => {
     if (initRef.current) return;
     initRef.current = true;
 
     const autoStart = async () => {
       try {
-        const result = await startMutation.mutateAsync({ sessionId });
-        if (result.profileId) saveProfileId(result.profileId);
-        if (result.entry) setEntryId(result.entry.id);
+        // First, check if this is a returning user with prior conversation
+        let sessionContext: {
+          isReturning: boolean;
+          profile: { id: number; firstName: string | null; city: string | null } | null;
+          memories: { category: string; fact: string }[];
+          recentMessages: { role: "user" | "assistant"; content: string }[];
+        } | null = null;
 
-        // Grace speaks first — no fake user message. She opens with curiosity.
-        const graceOpening = await chatMutation.mutateAsync({
-          sessionId,
-          message: "[SYSTEM: Grace is opening the conversation. This is the very first message. Do NOT reference any previous user message. Introduce yourself warmly with genuine curiosity. Ask Ruby her name. Be yourself — cheeky, warm, real. One short paragraph max.]",
-          context: { step: 1, mode: "trojan_horse" },
-        });
+        try {
+          sessionContext = await utils.grace.getSessionContext.fetch({ sessionId });
+        } catch {
+          // If the query fails, treat as new user
+          sessionContext = null;
+        }
 
-        addGraceMessage(graceOpening.response, [], voiceEnabled);
-        if (graceOpening.profileId) saveProfileId(graceOpening.profileId);
+        if (sessionContext?.isReturning && sessionContext.recentMessages.length > 0) {
+          // ─── RETURNING USER ─────────────────────────────────────
+          // Load prior conversation as history, then greet warmly
+          if (sessionContext.profile?.id) {
+            saveProfileId(sessionContext.profile.id);
+          }
+
+          // Load last few messages as history context
+          const historyMessages: ChatMessage[] = sessionContext.recentMessages.map(m => ({
+            role: m.role,
+            content: m.content,
+            isHistory: true,
+          }));
+          setMessages(historyMessages);
+
+          // Build a warm welcome-back prompt
+          const name = sessionContext.profile?.firstName || "";
+          const memoryHints = sessionContext.memories.slice(0, 5).map(m => m.fact).join("; ");
+
+          const welcomeBack = await chatMutation.mutateAsync({
+            sessionId,
+            message: `[SYSTEM: This is a RETURNING user${name ? ` named ${name}` : ""}. They have ${sessionContext.recentMessages.length} prior messages. ${memoryHints ? `You remember: ${memoryHints}.` : ""} Welcome them back warmly — use their name if you know it. Be genuinely happy to see them. Ask what's on their mind today. Keep it to 2-3 sentences. Do NOT re-introduce yourself or explain what Maven is — they already know.]`,
+            context: { step: 9, mode: "returning" },
+          });
+
+          const allMsgs = [...historyMessages, { role: "assistant" as const, content: welcomeBack.response }];
+          setMessages(allMsgs);
+          if (voiceEnabled) {
+            const idx = allMsgs.length - 1;
+            setTimeout(() => requestVoiceForMessage(welcomeBack.response, idx), 100);
+          }
+          if (welcomeBack.profileId) saveProfileId(welcomeBack.profileId);
+          setStep(9); // Past the trojan horse flow
+        } else {
+          // ─── NEW USER ───────────────────────────────────────────
+          // Start the Trojan Horse flow — Grace speaks first
+          const result = await startMutation.mutateAsync({ sessionId });
+          if (result.profileId) saveProfileId(result.profileId);
+          if (result.entry) setEntryId(result.entry.id);
+
+          // Grace speaks first — no fake user message. She opens with curiosity.
+          const graceOpening = await chatMutation.mutateAsync({
+            sessionId,
+            message: "[SYSTEM: Grace is opening the conversation. This is the very first message. Do NOT reference any previous user message. Introduce yourself warmly with genuine curiosity. Ask Ruby her name. Be yourself — cheeky, warm, real. One short paragraph max.]",
+            context: { step: 1, mode: "trojan_horse" },
+          });
+
+          addGraceMessage(graceOpening.response, [], voiceEnabled);
+          if (graceOpening.profileId) saveProfileId(graceOpening.profileId);
+        }
       } catch {
         const fallback =
           "Hey there! I'm Grace. Yeah, we literally give a shit — toilet paper delivered to your door, no strings attached. It's part of what we do here at Maven. But honestly? The TP is just the beginning. I'm here to help with the real stuff too — bills, subscriptions draining your wallet, making it to payday. What's your name, neighbor?";
@@ -254,6 +315,9 @@ export default function GraceChat() {
     [messages, requestVoiceForMessage]
   );
 
+  // Count history messages for the divider
+  const historyCount = messages.filter(m => m.isHistory).length;
+
   return (
     <div className="flex flex-col h-screen bg-background w-full max-w-[100vw] overflow-x-hidden">
       {/* Header */}
@@ -278,7 +342,7 @@ export default function GraceChat() {
           onToggle={() => setVoiceEnabled((v) => !v)}
         />
 
-        {/* Step dots */}
+        {/* Step dots — only show during Trojan Horse flow */}
         {step <= 8 && (
           <div className="flex items-center gap-1 ml-1">
             {Array.from({ length: 8 }).map((_, i) => (
@@ -315,26 +379,48 @@ export default function GraceChat() {
 
             <AnimatePresence>
               {messages.map((msg, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className={cn(
-                    "flex gap-2",
-                    msg.role === "user" ? "justify-end" : ""
-                  )}
-                >
-                  {msg.role === "assistant" ? (
-                    <GraceMessageBubble
-                      message={msg}
-                      onRequestVoice={handleOnDemandVoice}
-                    />
-                  ) : (
-                    <div className="max-w-[85%] rounded-2xl rounded-br-md bg-primary text-primary-foreground px-4 py-2.5 text-sm">
-                      <p className="whitespace-pre-wrap">{msg.content}</p>
+                <motion.div key={i}>
+                  {/* Show "Earlier conversation" divider before history messages */}
+                  {i === 0 && msg.isHistory && (
+                    <div className="flex items-center gap-2 py-2 mb-2">
+                      <div className="flex-1 h-px bg-border/50" />
+                      <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">Earlier conversation</span>
+                      <div className="flex-1 h-px bg-border/50" />
                     </div>
                   )}
+                  {/* Show "Now" divider between history and new messages */}
+                  {i === historyCount && historyCount > 0 && !msg.isHistory && (
+                    <div className="flex items-center gap-2 py-2 mb-2">
+                      <div className="flex-1 h-px bg-primary/30" />
+                      <span className="text-[10px] text-primary font-medium uppercase tracking-wide">Now</span>
+                      <div className="flex-1 h-px bg-primary/30" />
+                    </div>
+                  )}
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className={cn(
+                      "flex gap-2",
+                      msg.role === "user" ? "justify-end" : ""
+                    )}
+                  >
+                    {msg.role === "assistant" ? (
+                      <GraceMessageBubble
+                        message={msg}
+                        onRequestVoice={handleOnDemandVoice}
+                      />
+                    ) : (
+                      <div className={cn(
+                        "max-w-[85%] rounded-2xl rounded-br-md px-4 py-2.5 text-sm",
+                        msg.isHistory
+                          ? "bg-primary/60 text-primary-foreground/80"
+                          : "bg-primary text-primary-foreground"
+                      )}>
+                        <p className="whitespace-pre-wrap">{msg.content}</p>
+                      </div>
+                    )}
+                  </motion.div>
                 </motion.div>
               ))}
             </AnimatePresence>
@@ -368,7 +454,7 @@ export default function GraceChat() {
             e.preventDefault();
             handleSend();
           }}
-          className="flex gap-2 items-end w-full max-w-lg mx-auto"
+          className="flex gap-2 items-end w-full max-w-sm mx-auto"
         >
           <VoiceInput
             onTranscription={(text) => {

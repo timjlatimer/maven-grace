@@ -83,7 +83,7 @@ export default function BillTracker() {
     <div className="min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-cream pb-24">
       {/* Header */}
       <div className="bg-gradient-to-br from-teal-600 to-teal-700 text-white px-4 pt-12 pb-8">
-        <div className="w-full max-w-lg mx-auto">
+        <div className="w-full max-w-sm mx-auto">
           <div className="flex items-center gap-2 mb-2">
             <Calendar className="w-5 h-5 text-teal-200" />
             <span className="text-teal-200 text-sm font-semibold uppercase tracking-wide">Bill Tracker</span>
@@ -99,7 +99,7 @@ export default function BillTracker() {
         </div>
       </div>
 
-      <div className="w-full max-w-lg mx-auto px-4 mt-4 space-y-4">
+      <div className="w-full max-w-sm mx-auto px-4 mt-4 space-y-4">
         {/* NSF Fee Fighter banner */}
         {nsfFlagged.length > 0 && (
           <Card className="p-4 bg-amber-50 border-amber-300 border-2">

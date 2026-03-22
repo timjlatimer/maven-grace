@@ -1,14 +1,40 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLocation } from "wouter";
-import { Heart, Gift, Music, Shield, TrendingUp, ArrowRight, Sparkles, Package, MapPin } from "lucide-react";
+import { Heart, Gift, Music, Shield, TrendingUp, ArrowRight, Sparkles, Package, MapPin, ChevronDown, HelpCircle } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import { useGraceSession } from "@/hooks/useGraceSession";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+
+const FAQ_ITEMS = [
+  {
+    q: "What is Maven Grace?",
+    a: "Maven is a membership that includes free household essentials delivered to your door, plus Grace — your personal AI friend who helps with bills, subscriptions, budgeting, and making it to payday. No judgment, no fine print."
+  },
+  {
+    q: "Is it really free?",
+    a: "Getting started is free. The Essentials Box comes with any membership tier. Grace never gets cut — even if you can't pay, she stays. We have paid tiers that unlock more features, but you'll never be locked out of the basics."
+  },
+  {
+    q: "How does Grace help me save money?",
+    a: "Grace finds subscriptions you forgot about (we call them vampires), helps you build a budget, tracks your bills, and shows you exactly how much better off you are. Members save an average of $40-60/month in the first 90 days."
+  },
+  {
+    q: "Do you sell my data?",
+    a: "Never. Not ever. Your conversations with Grace, your financial information, your address — none of it gets sold. Period. We make money from memberships, not from selling your life to advertisers."
+  },
+  {
+    q: "What's in the Essentials Box?",
+    a: "Toilet paper, paper towels, dish soap, hand soap, laundry pods, and more. Delivered every 2-3 weeks. Because you shouldn't have to choose between essentials and groceries."
+  },
+];
 
 export default function Home() {
   const [, navigate] = useLocation();
   const { profileId } = useGraceSession();
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   return (
     <div className="min-h-screen bg-background pb-20 w-full max-w-[100vw] overflow-x-hidden">
@@ -22,7 +48,7 @@ export default function Home() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="w-full max-w-lg mx-auto"
+          className="w-full max-w-sm mx-auto"
         >
           <div className="flex items-center gap-2 mb-4">
             <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center maven-glow">
@@ -65,7 +91,7 @@ export default function Home() {
       </div>
 
       {/* What Maven Grace Does — Feature Cards */}
-      <div className="w-full max-w-lg mx-auto px-4 py-8 space-y-4">
+      <div className="w-full max-w-sm mx-auto px-4 py-8 space-y-4">
         <h2 className="text-lg font-bold text-foreground">What Grace does for you</h2>
 
         <motion.div
@@ -182,6 +208,43 @@ export default function Home() {
             "I found $47 a month I didn't know I was spending. Grace found it in 10 minutes."
           </p>
           <p className="text-xs text-muted-foreground mt-2">— A Maven member, Red Deer</p>
+        </div>
+
+        {/* FAQ Section */}
+        <div className="mt-6 space-y-2">
+          <div className="flex items-center gap-2 mb-3">
+            <HelpCircle className="w-4 h-4 text-primary" />
+            <h3 className="font-bold text-foreground text-sm">Common questions</h3>
+          </div>
+          {FAQ_ITEMS.map((item, i) => (
+            <div key={i} className="border border-border/50 rounded-xl overflow-hidden">
+              <button
+                onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-muted/30 transition-colors"
+              >
+                <span className="text-sm font-medium text-foreground pr-2">{item.q}</span>
+                <ChevronDown className={cn(
+                  "w-4 h-4 text-muted-foreground shrink-0 transition-transform duration-200",
+                  openFaq === i && "rotate-180"
+                )} />
+              </button>
+              <AnimatePresence>
+                {openFaq === i && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <p className="text-sm text-muted-foreground leading-relaxed px-4 pb-3">
+                      {item.a}
+                    </p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          ))}
         </div>
 
         {/* Privacy + Trust */}
