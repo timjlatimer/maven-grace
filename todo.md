@@ -305,6 +305,6 @@
 
 ### Race 8 Completion
 - [x] Write vitest tests for Race 8 features (22 new tests, 130 total across 9 files)
-- [ ] Commit to GitHub timjlatimer/maven-grace
-- [ ] Commit announcer log to vault
-- [ ] Deploy to mavengrace-oh49sfbq.manus.space
+- [x] Commit to GitHub timjlatimer/maven-grace — commit 08224c2 confirmed live
+- [x] Commit announcer log to vault — commit 3d0e464 confirmed live
+- [ ] Deploy to mavengrace-oh49sfbq.manus.space — IN PROGRESS
