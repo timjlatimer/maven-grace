@@ -74,7 +74,7 @@ export default function PromisesKeep() {
           <ArrowLeft className="w-5 h-5" />
         </button>
         <h1 className="text-lg font-bold text-foreground">Promises to Keep</h1>
-        <span className="text-xs text-muted-foreground ml-auto">Nana the Promise Keeper</span>
+        {profileId && <span className="text-xs text-muted-foreground ml-auto">Nana the Promise Keeper</span>}
       </div>
 
       <div className="max-w-lg mx-auto px-4 py-6 space-y-5">

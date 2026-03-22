@@ -182,17 +182,14 @@ export default function GraceChat() {
         if (result.profileId) saveProfileId(result.profileId);
         if (result.entry) setEntryId(result.entry.id);
 
+        // Grace speaks first — no fake user message. She opens with curiosity.
         const graceOpening = await chatMutation.mutateAsync({
           sessionId,
-          message: "Hi! I heard Maven actually delivers toilet paper? What's the deal?",
+          message: "[SYSTEM: Grace is opening the conversation. This is the very first message. Do NOT reference any previous user message. Introduce yourself warmly with genuine curiosity. Ask Ruby her name. Be yourself — cheeky, warm, real. One short paragraph max.]",
           context: { step: 1, mode: "trojan_horse" },
         });
 
-        const userMsg: ChatMessage = {
-          role: "user",
-          content: "Hi! I heard Maven actually delivers toilet paper? What's the deal?",
-        };
-        addGraceMessage(graceOpening.response, [userMsg], voiceEnabled);
+        addGraceMessage(graceOpening.response, [], voiceEnabled);
         if (graceOpening.profileId) saveProfileId(graceOpening.profileId);
       } catch {
         const fallback =

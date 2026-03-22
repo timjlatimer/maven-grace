@@ -281,4 +281,30 @@
 ### Race 7 Infrastructure
 - [x] Write vitest tests for all Race 7 features (20 new tests, 108 total across 8 files)
 - [x] Commit to GitHub timjlatimer/maven-grace — commit 1482c68 confirmed live
-- [ ] Deploy to mavengrace-oh49sfbq.manus.space — IN PROGRESS
+- [x] Deploy to mavengrace-oh49sfbq.manus.space — deployed, checkpoint f81090f0
+
+## Race 8 — Build Sprint (March 22, 2026)
+
+### P0 Critical Fixes
+- [x] Fix "Nana the Pro..." test account name leak on Promises page for unauthenticated users
+- [x] Fix Dignity Score ring cutoff on mobile (390px) — both indicators fully visible, bar height 32px, text 10px, shrink-0
+- [x] Fix hero text overflow on mobile — text-sm on mobile, break-words, max-w-full
+
+### P1 High Impact
+- [x] Add "Get My Free Box" CTA button on landing page below "Meet Grace"
+- [x] Rename "Observer" free tier to "Get Started Free" everywhere (Membership, AdminDashboard, stripe.ts)
+- [x] Rewrite Grace's opening message — curiosity-first, no fake user message, SYSTEM instruction for warm intro
+
+### P2 Medium
+- [x] Vampire Slayer: Grace-style feedback after first vampire add showing monthly savings
+- [x] Big Mama one-line explanation on Community Credits page
+- [x] Privacy trust signal in landing page footer: "We never sell your data. Ever."
+
+### P3 Nice to Have
+- [x] Testimonial placeholder on landing page — "$47/month" quote
+
+### Race 8 Completion
+- [x] Write vitest tests for Race 8 features (22 new tests, 130 total across 9 files)
+- [ ] Commit to GitHub timjlatimer/maven-grace
+- [ ] Commit announcer log to vault
+- [ ] Deploy to mavengrace-oh49sfbq.manus.space

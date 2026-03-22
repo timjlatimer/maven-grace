@@ -13,7 +13,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Hero — "Maven and Grace Give a Shit" */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-primary/15 via-accent/20 to-maven-rose/10 px-4 pt-12 pb-10">
+      <div className="relative overflow-hidden bg-gradient-to-br from-primary/15 via-accent/20 to-maven-rose/10 px-4 pt-12 pb-10 max-w-full">
         {/* Decorative background art — intentionally faint, z-index below content */}
         <div className="absolute top-6 right-6 opacity-5 pointer-events-none select-none" style={{ zIndex: 0 }}>
           <Heart className="w-28 h-28 text-maven-rose" />
@@ -36,7 +36,7 @@ export default function Home() {
           <p className="text-base text-foreground/70 font-medium mb-1">
             Literally.
           </p>
-          <p className="text-base text-muted-foreground leading-relaxed mb-6">
+          <p className="text-sm sm:text-base text-muted-foreground leading-relaxed mb-6 break-words">
             Free toilet paper delivered to your door. Plus a friend named Grace who actually helps with the hard stuff — bills, subscriptions, making it to payday. No forms. No judgment. Just a neighbor who gets it.
           </p>
           <Button
@@ -47,6 +47,15 @@ export default function Home() {
             <Gift className="w-5 h-5 mr-2" />
             Meet Grace — Get Started Free
             <ArrowRight className="w-5 h-5 ml-2" />
+          </Button>
+          <Button
+            variant="outline"
+            size="lg"
+            className="w-full sm:w-auto font-bold text-base rounded-xl h-12 px-8 mt-3 border-2 border-primary/40 text-primary hover:bg-primary/10"
+            onClick={() => navigate("/membership")}
+          >
+            <Package className="w-5 h-5 mr-2" />
+            Get My Free Box
           </Button>
           <p className="text-xs text-muted-foreground mt-3 flex items-center gap-1">
             <Package className="w-3 h-3" />
@@ -167,8 +176,19 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Trust statement */}
-        <div className="text-center pt-4 pb-2">
+        {/* Testimonial placeholder */}
+        <div className="bg-muted/30 rounded-2xl p-5 mt-4 border border-border/50">
+          <p className="text-sm text-foreground/80 italic leading-relaxed">
+            "I found $47 a month I didn't know I was spending. Grace found it in 10 minutes."
+          </p>
+          <p className="text-xs text-muted-foreground mt-2">— A Maven member, Red Deer</p>
+        </div>
+
+        {/* Privacy + Trust */}
+        <div className="text-center pt-4 pb-2 space-y-2">
+          <p className="text-xs font-semibold text-primary/80">
+            We never sell your data. Ever.
+          </p>
           <p className="text-xs text-muted-foreground italic">
             "It's expensive to be poor." — We think that's a crime. We're trying to change it.
           </p>

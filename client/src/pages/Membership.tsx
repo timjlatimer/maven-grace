@@ -11,8 +11,8 @@ import { Link } from "wouter";
 const TIERS = [
   {
     id: "observer" as const,
-    name: "Observer",
-    tagline: "Dip your toe in",
+    name: "Get Started Free",
+    tagline: "Meet Grace, no strings attached",
     weeklyPrice: null,
     monthlyPrice: null,
     color: "bg-gray-50 border-gray-200",
@@ -37,7 +37,7 @@ const TIERS = [
     badge: "Most Popular",
     badgeColor: "bg-teal-500 text-white",
     features: [
-      "Everything in Observer",
+      "Everything in Get Started Free",
       "Maven Essentials Box every 2-3 weeks",
       "Toilet paper + household essentials delivered",
       "Full Vampire Slayer",

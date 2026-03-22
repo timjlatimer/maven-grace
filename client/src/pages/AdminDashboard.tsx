@@ -92,7 +92,7 @@ export default function AdminDashboard() {
           </h3>
           <div className="space-y-2">
             {[
-              { tier: "observer", label: "Observer (Free)", color: "bg-gray-200" },
+              { tier: "observer", label: "Get Started Free", color: "bg-gray-200" },
               { tier: "essentials", label: "Maven Essentials ($5.99/wk)", color: "bg-teal-500" },
               { tier: "plus", label: "Maven Plus ($10.99/wk)", color: "bg-purple-500" },
             ].map(({ tier, label, color }) => {

@@ -88,6 +88,9 @@ export default function CommunityCredits() {
           <p className="text-sm text-muted-foreground mt-1">
             Earn credits through community actions. Redeem at 50% toward your subscription.
           </p>
+          <p className="text-xs text-amber-700/70 dark:text-amber-300/70 mt-2 italic">
+            Big Mama is the heart of our community. She keeps track of what you give and makes sure it comes back to you.
+          </p>
         </div>
 
         {/* Balance Card */}

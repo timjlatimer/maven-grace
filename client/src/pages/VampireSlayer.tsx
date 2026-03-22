@@ -27,9 +27,16 @@ export default function VampireSlayer() {
   const addMutation = trpc.vampireSlayer.addSubscription.useMutation({
     onSuccess: () => {
       utils.vampireSlayer.getSubscriptions.invalidate();
+      const costNum = parseFloat(newCost);
+      const totalMonthly = (subs || []).reduce((sum: number, s: any) => sum + (s.monthlyCostCents || 0), 0) / 100 + (isNaN(costNum) ? 0 : costNum);
       setNewName("");
       setNewCost("");
-      toast.success("Subscription added!");
+      if ((subs || []).length === 0) {
+        // First vampire added — Grace celebrates
+        toast.success(`Nice! That's your first one. You're spending roughly $${totalMonthly.toFixed(0)}/month on subscriptions. Let's see what else is hiding. — Grace`, { duration: 5000 });
+      } else {
+        toast.success(`Got it. That brings your total to about $${totalMonthly.toFixed(0)}/month ($${(totalMonthly * 12).toFixed(0)}/year). Keep going! — Grace`, { duration: 4000 });
+      }
     },
   });
 

@@ -20,17 +20,17 @@ export function isStripeConfigured(): boolean {
 // These are the Maven membership tiers. Prices are in cents.
 export const MAVEN_PRODUCTS = {
   observer: {
-    name: "Maven Observer",
+    name: "Get Started Free",
     description: "Chat with Grace, Financial Dashboard, Vampire Slayer (limited), Journey Tracker",
     weeklyPriceCents: 0,
     features: ["Chat with Grace", "Financial Impact Dashboard", "Vampire Slayer (limited)", "90-Day Journey Tracker"],
   },
   essentials: {
     name: "Maven Essentials",
-    description: "Everything in Observer + Maven Essentials Box, full tools, Milk Money, Grace voice companion",
+    description: "Everything in Get Started Free + Maven Essentials Box, full tools, Milk Money, Grace voice companion",
     weeklyPriceCents: 599,
     features: [
-      "Everything in Observer",
+      "Everything in Get Started Free",
       "Maven Essentials Box every 2-3 weeks",
       "Toilet paper + household essentials delivered",
       "Full Vampire Slayer",
