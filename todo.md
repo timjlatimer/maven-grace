@@ -355,6 +355,34 @@
 
 ### Race 10 Completion
 - [x] Write vitest tests for Race 10 features (16 new tests, 162 total across 11 files)
+- [x] Commit to GitHub timjlatimer/maven-grace — commit fce2d6d confirmed live
+- [x] Commit announcer log to vault — commit 10bb170 confirmed live
+- [x] Deploy to mavengrace-oh49sfbq.manus.space — deployed, checkpoint fce2d6db
+
+## Race 11 — Grace Intelligence + Financial Coaching Sprint (March 22, 2026)
+
+### P0 — Grace Financial Stress Detection
+- [x] Detect stress keywords in system prompt (can't afford, broke, overdraft, NSF, behind on, late on, overdue, paycheck to paycheck, choosing between, put something back, can't pay)
+- [x] When stress detected, Grace validates first then offers ONE specific tool matching the stress type
+- [x] Stress detection integrated into Grace's system prompt with specific response patterns for bill stress, subscription drain, emergency need, and general overwhelm
+
+### P1 — Grace Personality Enhancement (5 Secret Weapons)
+- [x] Update system prompt with 5 secret weapons: (1) Validate first, solve second (2) Use humor to defuse tension (3) Reference past conversations naturally (4) Celebrate micro-wins (5) Never rush Ruby
+- [x] Emotional intelligence layer built into system prompt — Grace detects tone and adjusts
+- [x] Natural language patterns in prompt examples — contractions, humor, warmth
+
+### P2 — Monthly Reality Check
+- [x] New endpoint: grace.monthlyReview — returns vampiresSlayed, estimatedSavedCents, promisesKept, dignityScore, communityCredits, summary text
+- [x] Frontend: Monthly Review card on Dashboard with 3-column stat grid (Vampires, Promises, Credits)
+- [x] Grace references monthly review in system prompt — celebration framing, not report framing
+
+### P3 — Grace Proactive Nudges Enhancement
+- [x] Ambient message infrastructure verified — addAmbientMessage callable for bill reminders
+- [x] Bill due soon nudge pattern established ("Hey Ruby, your electricity bill is due in 2 days")
+- [x] Payday nudge pattern ready for future cron integration
+
+### Race 11 Completion
+- [x] Write vitest tests for Race 11 features (14 new tests, 176 total across 12 files)
 - [ ] Commit to GitHub timjlatimer/maven-grace
 - [ ] Commit announcer log to vault
 - [ ] Deploy to mavengrace-oh49sfbq.manus.space

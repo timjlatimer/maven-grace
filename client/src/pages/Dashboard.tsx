@@ -1,8 +1,9 @@
 import { trpc } from "@/lib/trpc";
 import { useGraceSession } from "@/hooks/useGraceSession";
+import { useAuth } from "@/_core/hooks/useAuth";
 import BottomNav from "@/components/BottomNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, TrendingUp, ShieldCheck, Banknote, Users, GraduationCap, Package, Sparkles, Shield, Wallet, MessageCircle } from "lucide-react";
+import { ArrowLeft, TrendingUp, ShieldCheck, Banknote, Users, GraduationCap, Package, Sparkles, Shield, Wallet, MessageCircle, CalendarCheck } from "lucide-react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 
@@ -33,6 +34,12 @@ export default function Dashboard() {
   const { data: impacts } = trpc.financial.getImpacts.useQuery(
     { profileId: profileId! },
     { enabled: !!profileId }
+  );
+
+  const { user } = useAuth();
+  const { data: review } = trpc.grace.monthlyReview.useQuery(
+    { profileId: profileId! },
+    { enabled: !!profileId && !!user }
   );
 
   const totalLift = summary?.total || 0;
@@ -69,6 +76,41 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </motion.div>
+
+        {/* Monthly Reality Check */}
+        {review && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <Card className="bg-gradient-to-r from-grace/5 to-lift/5 border-grace/20">
+              <CardContent className="py-4 px-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <CalendarCheck className="w-4 h-4 text-grace" />
+                  <p className="text-sm font-bold text-foreground">Your Month in Review</p>
+                </div>
+                <p className="text-sm text-foreground/80 leading-relaxed mb-3">
+                  {review.summary}
+                </p>
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="bg-background/60 rounded-lg py-2">
+                    <p className="text-lg font-bold text-destructive">{review.vampiresSlayed}</p>
+                    <p className="text-[10px] text-muted-foreground">Vampires</p>
+                  </div>
+                  <div className="bg-background/60 rounded-lg py-2">
+                    <p className="text-lg font-bold text-grace">{review.promisesKept}</p>
+                    <p className="text-[10px] text-muted-foreground">Promises Kept</p>
+                  </div>
+                  <div className="bg-background/60 rounded-lg py-2">
+                    <p className="text-lg font-bold text-lift">{review.communityCredits}</p>
+                    <p className="text-[10px] text-muted-foreground">Credits</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
 
         {/* Category Breakdown */}
         <div className="space-y-3">
