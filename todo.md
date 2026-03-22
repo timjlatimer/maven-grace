@@ -280,5 +280,5 @@
 
 ### Race 7 Infrastructure
 - [x] Write vitest tests for all Race 7 features (20 new tests, 108 total across 8 files)
-- [ ] Commit to GitHub timjlatimer/maven-grace
-- [ ] Deploy to mavengrace-oh49sfbq.manus.space
+- [x] Commit to GitHub timjlatimer/maven-grace — commit 1482c68 confirmed live
+- [ ] Deploy to mavengrace-oh49sfbq.manus.space — IN PROGRESS
