@@ -259,9 +259,31 @@ export const appRouter = router({
           ? "\nSELF-CARE CHECK-IN: Ruby has been quiet for over 48 hours. Open with a warm, concerned check-in: 'Hey, I haven't heard from you in a while. I'm not trying to be nosy — I just want to make sure you're okay. I've been thinking about you.' Never surveillance. Always love."
           : "";
 
+        // Proactive bill alerts — Grace mentions upcoming bills
+        let billAlertContext = "";
+        try {
+          const upcomingBills = await db.getBills(profile.id);
+          const today = new Date().getDate();
+          const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+          const urgentBills = upcomingBills.filter((b: any) => {
+            if (b.isPaid) return false;
+            let diff = b.dueDay - today;
+            if (diff < 0) diff += daysInMonth;
+            return diff <= 3;
+          });
+          if (urgentBills.length > 0) {
+            const billList = urgentBills.map((b: any) => {
+              let diff = b.dueDay - today;
+              if (diff < 0) diff += daysInMonth;
+              return `${b.name} ($${(b.amountCents / 100).toFixed(2)}, due ${diff === 0 ? 'today' : diff === 1 ? 'tomorrow' : `in ${diff} days`})`;
+            }).join(', ');
+            billAlertContext = `\nPROACTIVE BILL ALERT: Ruby has bills coming up soon: ${billList}. Mention this naturally in conversation — not as a lecture, but as a friend who noticed. 'Hey, just a heads up — your [bill] is due [when]. Want me to help you figure out the timing?'`;
+          }
+        } catch (e) { /* ignore bill fetch errors */ }
+
         // Build messages for LLM
         const llmMessages = [
-          { role: "system" as const, content: GRACE_SYSTEM_PROMPT + personalityContext + memoryContext + profileContext + stepContext + modeContext + vulnerabilityContext + dailySelfContext + selfCareContext },
+          { role: "system" as const, content: GRACE_SYSTEM_PROMPT + personalityContext + memoryContext + profileContext + stepContext + modeContext + vulnerabilityContext + dailySelfContext + selfCareContext + billAlertContext },
           ...history.slice(-16).map(h => ({
             role: h.role as "user" | "assistant",
             content: h.content

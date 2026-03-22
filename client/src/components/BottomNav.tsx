@@ -1,18 +1,19 @@
 import { useState } from "react";
 import { useLocation, Link } from "wouter";
-import { Home, MessageCircle, Shield, TrendingUp, Map, Package, Wallet, Calendar, Milk, MoreHorizontal, X, Music, Star, Heart, Compass, BookOpen, Users, Battery, Coins, Clock, AlertTriangle, Rocket, Sparkles, Globe, Layers } from "lucide-react";
+import { Home, MessageCircle, Shield, TrendingUp, Map, Package, Wallet, Calendar, Milk, MoreHorizontal, X, Music, Star, Heart, Compass, BookOpen, Users, Battery, Coins, Clock, AlertTriangle, Rocket, Sparkles, Globe, Layers, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const primaryNav = [
   { path: "/", icon: Home, label: "Home" },
   { path: "/grace", icon: MessageCircle, label: "Grace" },
-  { path: "/dashboard", icon: TrendingUp, label: "My Lift" },
+  { path: "/finances", icon: BarChart3, label: "Finances" },
   { path: "/vampire-slayer", icon: Shield, label: "Vampires" },
   { path: "/journey", icon: Map, label: "Journey" },
 ];
 
 const moreNav = [
   { path: "/membership", icon: Package, label: "Membership" },
+  { path: "/dashboard", icon: TrendingUp, label: "My Lift" },
   { path: "/budget", icon: Wallet, label: "Budget" },
   { path: "/bills", icon: Calendar, label: "Bills" },
   { path: "/milk-money", icon: Milk, label: "Milk Money" },

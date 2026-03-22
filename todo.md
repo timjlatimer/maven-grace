@@ -576,3 +576,14 @@
 - [x] Voice Integration — KIE.ai ONLY (standing order). ElevenLabs removed. KIE.ai already wired.
 - [x] Heartbeat Scenario Priority Queue — 7 scenarios in priority order (P1-P7), first match wins
 - [x] Grace's Conversation Memory Summary — LLM-generated 3-sentence recap injected on returning user welcome
+
+## Race 17 — Ruby's Financial Empowerment Dashboard (March 22, 2026)
+
+- [x] Financial Dashboard — visual overview with overview cards, charts, and navigation
+- [x] Bill Calendar View — color-coded monthly calendar (green/amber/red) with dots
+- [x] Spending Insights — pie chart with category breakdown and percentages
+- [x] Paycheck Timeline — animated progress bar with bills-due-before-payday alert
+- [x] Dignity Score Trend Chart — Recharts line chart with trend badge
+- [x] Quick Actions Bar — 4-button grid: Add Bill, Log Expense, Talk to Grace, My Score
+- [x] Proactive Bill Alerts — injected into Grace's system prompt + visual alert card
+- [x] Milk Money Transaction History — visual list with borrow/repay icons and running balance
