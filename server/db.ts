@@ -750,3 +750,237 @@ export async function getUpcomingBorrows(profileId: number, daysAhead = 3) {
       sql`dueDate BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL ${daysAhead} DAY)`
     ));
 }
+
+// ── Race 6 Imports ─────────────────────────────────────────────────────
+import {
+  graceStatus, communityCredits, communityCreditsLog,
+  paydayPatterns, crisisBeacons, destinyMoonshots
+} from "../drizzle/schema";
+
+// ── Grace Status (Battery + Degradation) ───────────────────────────────
+
+export async function getGraceStatus(profileId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db.select().from(graceStatus).where(eq(graceStatus.profileId, profileId));
+  return rows[0] || null;
+}
+
+export async function upsertGraceStatus(profileId: number, data: Partial<typeof graceStatus.$inferInsert>) {
+  const db = await getDb();
+  if (!db) return;
+  const existing = await getGraceStatus(profileId);
+  if (existing) {
+    await db.update(graceStatus).set({ ...data, updatedAt: new Date() }).where(eq(graceStatus.profileId, profileId));
+  } else {
+    await db.insert(graceStatus).values({ profileId, ...data });
+  }
+}
+
+export async function calculateBatteryLevel(profileId: number): Promise<number> {
+  const status = await getGraceStatus(profileId);
+  if (!status) return 100;
+  const daysPastDue = status.daysPastDue || 0;
+  if (daysPastDue <= 0) return 100;
+  if (daysPastDue <= 3) return 95;    // silent retry
+  if (daysPastDue <= 7) return 85;    // gentle notice
+  if (daysPastDue <= 14) return 70;   // pause offer
+  if (daysPastDue <= 27) return 50;   // tier 1
+  if (daysPastDue <= 44) return 30;   // tier 2
+  if (daysPastDue <= 60) return 10;   // tier 3/4
+  return 5;                           // grace lite floor
+}
+
+export async function getSpeedStage(batteryLevel: number): Promise<string> {
+  if (batteryLevel >= 86) return "normal";
+  if (batteryLevel >= 70) return "thoughtful";
+  if (batteryLevel >= 50) return "tired";
+  if (batteryLevel >= 30) return "stretched";
+  return "running_low";
+}
+
+export async function getDegradationTier(profileId: number): Promise<string> {
+  const status = await getGraceStatus(profileId);
+  if (!status) return "full";
+  const days = status.daysPastDue || 0;
+  if (days <= 13) return "full";
+  if (days <= 27) return "essentials_lite";
+  if (days <= 44) return "core";
+  if (status.dignityScore100Achieved) return "careful";
+  return "lite";
+}
+
+// ── Community Credits ──────────────────────────────────────────────────
+
+export async function getCommunityCredits(profileId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db.select().from(communityCredits).where(eq(communityCredits.profileId, profileId));
+  return rows[0] || null;
+}
+
+export async function ensureCommunityCredits(profileId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const existing = await getCommunityCredits(profileId);
+  if (existing) return existing;
+  await db.insert(communityCredits).values({ profileId });
+  return getCommunityCredits(profileId);
+}
+
+export async function earnCredits(profileId: number, amount: number, category: string, description?: string) {
+  const db = await getDb();
+  if (!db) return;
+  await ensureCommunityCredits(profileId);
+  await db.update(communityCredits).set({
+    balance: sql`balance + ${amount}`,
+    totalEarned: sql`totalEarned + ${amount}`,
+    updatedAt: new Date(),
+  }).where(eq(communityCredits.profileId, profileId));
+  await db.insert(communityCreditsLog).values({
+    profileId, type: "earn", amount, category,
+    description: description || `Earned ${amount} credits for ${category}`,
+  });
+}
+
+export async function redeemCredits(profileId: number, amount: number, description?: string) {
+  const db = await getDb();
+  if (!db) return { success: false, message: "Database unavailable" };
+  const account = await ensureCommunityCredits(profileId);
+  if (!account || account.balance < amount) {
+    return { success: false, message: "Insufficient credits" };
+  }
+  // 50% redemption rate: 100 credits = $0.50 toward subscription
+  await db.update(communityCredits).set({
+    balance: sql`balance - ${amount}`,
+    totalRedeemed: sql`totalRedeemed + ${amount}`,
+    updatedAt: new Date(),
+  }).where(eq(communityCredits.profileId, profileId));
+  await db.insert(communityCreditsLog).values({
+    profileId, type: "redeem", amount, category: "subscription",
+    description: description || `Redeemed ${amount} credits toward subscription`,
+  });
+  return { success: true, creditsUsed: amount, dollarValue: (amount * 0.5 / 100).toFixed(2) };
+}
+
+export async function getCommunityCreditsLog(profileId: number, limit = 50) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(communityCreditsLog)
+    .where(eq(communityCreditsLog.profileId, profileId))
+    .orderBy(desc(communityCreditsLog.createdAt))
+    .limit(limit);
+}
+
+// ── Payday Detection ───────────────────────────────────────────────────
+
+export async function getPaydayPattern(profileId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db.select().from(paydayPatterns).where(eq(paydayPatterns.profileId, profileId));
+  return rows[0] || null;
+}
+
+export async function upsertPaydayPattern(profileId: number, data: Partial<typeof paydayPatterns.$inferInsert>) {
+  const db = await getDb();
+  if (!db) return;
+  const existing = await getPaydayPattern(profileId);
+  if (existing) {
+    await db.update(paydayPatterns).set({ ...data, updatedAt: new Date() }).where(eq(paydayPatterns.profileId, profileId));
+  } else {
+    await db.insert(paydayPatterns).values({ profileId, frequency: data.frequency || "biweekly", ...data });
+  }
+}
+
+export function calculateNextPayday(pattern: { frequency: string; dayOfWeek?: number | null; dayOfMonth1?: number | null; dayOfMonth2?: number | null; lastPayday?: Date | null }): Date {
+  const now = new Date();
+  const freq = pattern.frequency;
+  if (freq === "weekly" && pattern.dayOfWeek != null) {
+    const target = new Date(now);
+    const diff = (pattern.dayOfWeek - now.getDay() + 7) % 7;
+    target.setDate(now.getDate() + (diff === 0 ? 7 : diff));
+    return target;
+  }
+  if (freq === "biweekly" && pattern.lastPayday) {
+    const last = new Date(pattern.lastPayday);
+    const next = new Date(last);
+    next.setDate(last.getDate() + 14);
+    while (next <= now) next.setDate(next.getDate() + 14);
+    return next;
+  }
+  if (freq === "monthly" && pattern.dayOfMonth1 != null) {
+    const target = new Date(now.getFullYear(), now.getMonth(), pattern.dayOfMonth1);
+    if (target <= now) target.setMonth(target.getMonth() + 1);
+    return target;
+  }
+  if (freq === "semimonthly" && pattern.dayOfMonth1 != null && pattern.dayOfMonth2 != null) {
+    const d1 = new Date(now.getFullYear(), now.getMonth(), pattern.dayOfMonth1);
+    const d2 = new Date(now.getFullYear(), now.getMonth(), pattern.dayOfMonth2);
+    if (d1 > now) return d1;
+    if (d2 > now) return d2;
+    d1.setMonth(d1.getMonth() + 1);
+    return d1;
+  }
+  // Default: assume biweekly from today
+  const fallback = new Date(now);
+  fallback.setDate(now.getDate() + 14);
+  return fallback;
+}
+
+// ── Crisis Beacons ─────────────────────────────────────────────────────
+
+export async function createCrisisBeacon(profileId: number, agentsActivated: string[]) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.insert(crisisBeacons).values({
+    profileId,
+    agentsActivated: JSON.stringify(agentsActivated),
+  });
+  return result;
+}
+
+export async function getActiveBeacon(profileId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db.select().from(crisisBeacons)
+    .where(and(eq(crisisBeacons.profileId, profileId), eq(crisisBeacons.status, "active")));
+  return rows[0] || null;
+}
+
+export async function resolveBeacon(id: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(crisisBeacons).set({ status: "resolved", resolvedAt: new Date() }).where(eq(crisisBeacons.id, id));
+}
+
+// ── Destiny Moonshot ───────────────────────────────────────────────────
+
+export async function getMoonshot(profileId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db.select().from(destinyMoonshots).where(eq(destinyMoonshots.profileId, profileId));
+  return rows[0] || null;
+}
+
+export async function createMoonshot(profileId: number, data: Partial<typeof destinyMoonshots.$inferInsert>) {
+  const db = await getDb();
+  if (!db) return;
+  const existing = await getMoonshot(profileId);
+  if (existing) {
+    await db.update(destinyMoonshots).set(data).where(eq(destinyMoonshots.profileId, profileId));
+  } else {
+    await db.insert(destinyMoonshots).values({ profileId, ...data });
+  }
+}
+
+export async function revealMoonshot(profileId: number, statement: string, coreValues: string[], strengths: string[]) {
+  const db = await getDb();
+  if (!db) return;
+  await createMoonshot(profileId, {
+    revealed: true,
+    revealedAt: new Date(),
+    moonshotStatement: statement,
+    coreValues: JSON.stringify(coreValues),
+    strengths: JSON.stringify(strengths),
+  });
+}

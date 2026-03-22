@@ -1375,6 +1375,274 @@ MOOD: [uplifting/warm/empowering]
         return db.getOverdueBorrows(input.profileId);
       }),
   }),
+
+  // ─── GRACE STATUS (Battery + Degradation) ────────────────────────
+  graceStatus: router({
+    get: protectedProcedure
+      .input(z.object({ profileId: z.number() }))
+      .query(async ({ input }) => {
+        const status = await db.getGraceStatus(input.profileId);
+        const batteryLevel = await db.calculateBatteryLevel(input.profileId);
+        const speedStage = await db.getSpeedStage(batteryLevel);
+        const tier = await db.getDegradationTier(input.profileId);
+        return {
+          batteryLevel,
+          speedStage,
+          tier,
+          daysPastDue: status?.daysPastDue || 0,
+          pauseRequested: status?.pauseRequested || false,
+          pauseExpiresAt: status?.pauseExpiresAt || null,
+          lastPaymentAt: status?.lastPaymentAt || null,
+          dignityScore100Achieved: status?.dignityScore100Achieved || false,
+        };
+      }),
+    requestPause: protectedProcedure
+      .input(z.object({ profileId: z.number() }))
+      .mutation(async ({ input }) => {
+        const pauseExpiresAt = new Date();
+        pauseExpiresAt.setDate(pauseExpiresAt.getDate() + 7);
+        await db.upsertGraceStatus(input.profileId, {
+          pauseRequested: true,
+          pauseExpiresAt,
+        });
+        return { success: true, pauseExpiresAt };
+      }),
+    restorePayment: protectedProcedure
+      .input(z.object({ profileId: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.upsertGraceStatus(input.profileId, {
+          daysPastDue: 0,
+          lastPaymentAt: new Date(),
+          pauseRequested: false,
+          pauseExpiresAt: null,
+        });
+        return { success: true, message: "Welcome back! Grace is at full power." };
+      }),
+  }),
+
+  // ─── COMMUNITY CREDITS ───────────────────────────────────────────
+  communityCredits: router({
+    get: protectedProcedure
+      .input(z.object({ profileId: z.number() }))
+      .query(async ({ input }) => {
+        const account = await db.ensureCommunityCredits(input.profileId);
+        return account;
+      }),
+    earn: protectedProcedure
+      .input(z.object({
+        profileId: z.number(),
+        amount: z.number().min(1).max(200),
+        category: z.enum(['teaching', 'helping', 'mentoring', 'volunteering', 'barter', 'referral']),
+        description: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        await db.earnCredits(input.profileId, input.amount, input.category, input.description);
+        const updated = await db.getCommunityCredits(input.profileId);
+        return { success: true, balance: updated?.balance || 0 };
+      }),
+    redeem: protectedProcedure
+      .input(z.object({
+        profileId: z.number(),
+        amount: z.number().min(1),
+      }))
+      .mutation(async ({ input }) => {
+        const result = await db.redeemCredits(input.profileId, input.amount);
+        return result;
+      }),
+    getLog: protectedProcedure
+      .input(z.object({ profileId: z.number() }))
+      .query(async ({ input }) => {
+        return db.getCommunityCreditsLog(input.profileId);
+      }),
+  }),
+
+  // ─── PAYDAY DETECTION ────────────────────────────────────────────
+  payday: router({
+    get: protectedProcedure
+      .input(z.object({ profileId: z.number() }))
+      .query(async ({ input }) => {
+        const pattern = await db.getPaydayPattern(input.profileId);
+        if (!pattern) return null;
+        const nextPayday = db.calculateNextPayday(pattern);
+        return { ...pattern, nextPayday };
+      }),
+    setup: protectedProcedure
+      .input(z.object({
+        profileId: z.number(),
+        frequency: z.enum(['weekly', 'biweekly', 'semimonthly', 'monthly']),
+        dayOfWeek: z.number().min(0).max(6).optional(),
+        dayOfMonth1: z.number().min(1).max(31).optional(),
+        dayOfMonth2: z.number().min(1).max(31).optional(),
+        lastPayday: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const data: any = {
+          frequency: input.frequency,
+          source: 'manual' as const,
+          confidence: 80,
+        };
+        if (input.dayOfWeek != null) data.dayOfWeek = input.dayOfWeek;
+        if (input.dayOfMonth1 != null) data.dayOfMonth1 = input.dayOfMonth1;
+        if (input.dayOfMonth2 != null) data.dayOfMonth2 = input.dayOfMonth2;
+        if (input.lastPayday) data.lastPayday = new Date(input.lastPayday);
+        await db.upsertPaydayPattern(input.profileId, data);
+        const pattern = await db.getPaydayPattern(input.profileId);
+        const nextPayday = pattern ? db.calculateNextPayday(pattern) : null;
+        return { success: true, nextPayday };
+      }),
+    detectFromBudget: protectedProcedure
+      .input(z.object({ profileId: z.number() }))
+      .mutation(async ({ input }) => {
+        // Analyze budget entries for income patterns
+        const entries = await db.getBudgetEntries(input.profileId);
+        const incomes = entries.filter(e => e.type === 'income');
+        if (incomes.length === 0) return { detected: false, message: "No income entries found. Add your income to the Budget Builder first." };
+        const freq = incomes[0]?.frequency || 'biweekly';
+        await db.upsertPaydayPattern(input.profileId, {
+          frequency: freq,
+          source: 'budget_analysis' as const,
+          confidence: 60,
+        });
+        return { detected: true, frequency: freq, confidence: 60 };
+      }),
+  }),
+
+  // ─── CRISIS BEACON ("I'm Not Okay") ──────────────────────────────
+  crisisBeacon: router({
+    activate: protectedProcedure
+      .input(z.object({ profileId: z.number() }))
+      .mutation(async ({ input }) => {
+        const existing = await db.getActiveBeacon(input.profileId);
+        if (existing) return { alreadyActive: true, beacon: existing };
+        const agents = ['vera', 'big_mama', 'steady', 'harbour'];
+        await db.createCrisisBeacon(input.profileId, agents);
+        return { activated: true, agents, message: "Vera and Big Mama are on their way. You're not alone." };
+      }),
+    getActive: protectedProcedure
+      .input(z.object({ profileId: z.number() }))
+      .query(async ({ input }) => {
+        return db.getActiveBeacon(input.profileId);
+      }),
+    resolve: protectedProcedure
+      .input(z.object({ beaconId: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.resolveBeacon(input.beaconId);
+        return { resolved: true };
+      }),
+  }),
+
+  // ─── DESTINY MOONSHOT REVEAL ─────────────────────────────────────
+  destinyMoonshot: router({
+    get: protectedProcedure
+      .input(z.object({ profileId: z.number() }))
+      .query(async ({ input }) => {
+        return db.getMoonshot(input.profileId);
+      }),
+    checkReadiness: protectedProcedure
+      .input(z.object({ profileId: z.number() }))
+      .query(async ({ input }) => {
+        const answers = await db.getDestinyAnswers(input.profileId);
+        const totalAnswered = answers.length;
+        const deepAnswered = answers.filter((a: any) => {
+          const q = getDestinyQuestions().find(q => q.number === a.questionNumber);
+          return q?.wave === 'deep';
+        }).length;
+        const ready = totalAnswered >= 20 && deepAnswered >= 5;
+        return { totalAnswered, deepAnswered, ready, threshold: { total: 20, deep: 5 } };
+      }),
+    generateReveal: protectedProcedure
+      .input(z.object({ profileId: z.number() }))
+      .mutation(async ({ input }) => {
+        const answers = await db.getDestinyAnswers(input.profileId);
+        const questions = getDestinyQuestions();
+        const qaPairs = answers.map((a: any) => {
+          const q = questions.find(q => q.number === a.questionNumber);
+          return `Q: ${q?.question || 'Unknown'}\nA: ${a.answer}`;
+        }).join('\n\n');
+        const response = await invokeLLM({
+          messages: [
+            { role: 'system', content: `You are Grace, synthesizing Ruby Red's destiny from her answers to 30 life questions. Write a deeply personal moonshot statement (2-3 paragraphs) that captures who she really is, what she's meant to do, and the big dream she barely lets herself think about. Also extract her core values (3-5) and key strengths (3-5). Be warm, direct, and real. This is the most important thing you'll ever tell her. Format as JSON: { "moonshotStatement": "...", "coreValues": [...], "strengths": [...] }` },
+            { role: 'user', content: `Here are Ruby's answers to the Destiny Discovery questions:\n\n${qaPairs}` },
+          ],
+          response_format: {
+            type: 'json_schema',
+            json_schema: {
+              name: 'moonshot_reveal',
+              strict: true,
+              schema: {
+                type: 'object',
+                properties: {
+                  moonshotStatement: { type: 'string' },
+                  coreValues: { type: 'array', items: { type: 'string' } },
+                  strengths: { type: 'array', items: { type: 'string' } },
+                },
+                required: ['moonshotStatement', 'coreValues', 'strengths'],
+                additionalProperties: false,
+              },
+            },
+          },
+        });
+        const content = response.choices?.[0]?.message?.content as string;
+        const parsed = JSON.parse(content);
+        await db.revealMoonshot(input.profileId, parsed.moonshotStatement, parsed.coreValues, parsed.strengths);
+        return parsed;
+      }),
+  }),
+
+  // ─── GRACE AMBIENT WIRING ────────────────────────────────────────
+  graceAmbient: router({
+    getMessages: protectedProcedure
+      .input(z.object({ profileId: z.number(), limit: z.number().default(5) }))
+      .query(async ({ input }) => {
+        return db.getUnreadAmbientMessages(input.profileId);
+      }),
+    generateNudges: protectedProcedure
+      .input(z.object({ profileId: z.number() }))
+      .mutation(async ({ input }) => {
+        const messages: { type: string; message: string; priority: number }[] = [];
+        // Check dignity score milestones
+        const dignity = await db.getLatestDignityScore(input.profileId);
+        if (dignity) {
+          const total = (dignity.vampireSlayer || 0) + (dignity.nsfShield || 0) + (dignity.budgetMastery || 0) + (dignity.milkMoneyTrust || 0) + (dignity.engagement || 0);
+          if (total >= 80) messages.push({ type: 'dignity_milestone', message: `Your Dignity Score is ${total}. You're almost there, Ruby. I'm so proud of how far you've come.`, priority: 1 });
+          else if (total >= 50) messages.push({ type: 'dignity_milestone', message: `Dignity Score: ${total}. You're past halfway. Every step counts.`, priority: 2 });
+        }
+        // Check overdue borrows
+        const overdue = await db.getOverdueBorrows(input.profileId);
+        if (overdue.length > 0) {
+          messages.push({ type: 'milkmoney_nudge', message: `Hey Ruby, you've got ${overdue.length} Milk Money payment${overdue.length > 1 ? 's' : ''} overdue. Let's get those sorted — your trust score will thank you.`, priority: 1 });
+        }
+        // Check upcoming borrows
+        const upcoming = await db.getUpcomingBorrows(input.profileId);
+        if (upcoming.length > 0) {
+          messages.push({ type: 'milkmoney_reminder', message: `Heads up — you've got a Milk Money payment coming up in the next few days. Want to knock it out early?`, priority: 2 });
+        }
+        // Check promises due
+        const promises = await db.getPromises(input.profileId, 'active');
+        const dueSoon = promises.filter((p: any) => {
+          if (!p.dueDate) return false;
+          const due = new Date(p.dueDate);
+          const now = new Date();
+          const diff = (due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+          return diff >= 0 && diff <= 3;
+        });
+        if (dueSoon.length > 0) {
+          messages.push({ type: 'promise_reminder', message: `You've got ${dueSoon.length} promise${dueSoon.length > 1 ? 's' : ''} coming due soon. Nana the Promise Keeper says you've got this.`, priority: 2 });
+        }
+        // Check battery level
+        const battery = await db.calculateBatteryLevel(input.profileId);
+        if (battery <= 50 && battery > 10) {
+          messages.push({ type: 'battery_warning', message: `My juice is getting low, Ruby. I'm still here, but I'm not doing my best. Come on, help me out.`, priority: 1 });
+        } else if (battery <= 10) {
+          messages.push({ type: 'battery_critical', message: `I'm running on fumes. I don't feel good right now. We're not doing our best. I need you to come back.`, priority: 0 });
+        }
+        // Store messages
+        for (const msg of messages) {
+          await db.addAmbientMessage(input.profileId, msg.type, msg.message);
+        }
+        return messages.sort((a, b) => a.priority - b.priority);
+      }),
+  }),
 });
 
 // ─── DESTINY QUESTIONS (30 Questions, 3 Waves) ──────────────────────

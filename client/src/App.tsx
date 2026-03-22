@@ -21,6 +21,12 @@ import DestinyDiscovery from "./pages/DestinyDiscovery";
 import StoryLibrary from "./pages/StoryLibrary";
 import VillageDirectory from "./pages/VillageDirectory";
 import NotFound from "./pages/NotFound";
+import GraceBattery from "./components/GraceBattery";
+import CommunityCredits from "./pages/CommunityCredits";
+import PaydaySetup from "./pages/PaydaySetup";
+import CrisisBeacon from "./pages/CrisisBeacon";
+import GraceStatusPage from "./pages/GraceStatusPage";
+import MoonshotReveal from "./pages/MoonshotReveal";
 
 function Router() {
   return (
@@ -44,6 +50,11 @@ function Router() {
       <Route path="/destiny" component={DestinyDiscovery} />
       <Route path="/stories" component={StoryLibrary} />
       <Route path="/village" component={VillageDirectory} />
+      <Route path="/credits" component={CommunityCredits} />
+      <Route path="/payday" component={PaydaySetup} />
+      <Route path="/crisis" component={CrisisBeacon} />
+      <Route path="/grace-status" component={GraceStatusPage} />
+      <Route path="/moonshot" component={MoonshotReveal} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
@@ -56,7 +67,10 @@ function App() {
       <ThemeProvider defaultTheme="light">
         <TooltipProvider>
           <Toaster />
-          <Router />
+          <GraceBattery />
+          <div style={{ paddingTop: "36px" }}>
+            <Router />
+          </div>
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

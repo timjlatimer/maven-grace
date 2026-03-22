@@ -29,6 +29,13 @@
       "when": 1774125692078,
       "tag": "0003_magenta_alex_power",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1774137356785,
+      "tag": "0004_curious_susan_delgado",
+      "breakpoints": true
     }
   ]
 }

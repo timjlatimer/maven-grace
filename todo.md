@@ -203,3 +203,48 @@
 - [x] Deploy to live URL
 - [x] Commit Race 5 announcer log to GitHub
 - [x] Update gap analysis with Race 5 findings
+- [x] Grace Degradation Architecture — research brief + spec committed to vault (93bed4d)
+
+## Race 6 — Full Build Sprint (Mar 21, 2026)
+
+### P1: Grace Ambient System Wiring
+- [x] Backend: ambient nudge generator (dignity milestones, overdue borrows, promises due, battery warnings)
+- [x] Frontend: ambient messages wired into Grace chat system
+
+### P2: Destiny Moonshot Reveal
+- [x] Backend: readiness check (20+ answers, 5+ deep wave), LLM synthesis
+- [x] Frontend: Moonshot Reveal ceremony page with confetti and celebration
+
+### P3: Repayment Genie Payday Detection
+- [x] Database: payday_patterns table
+- [x] Backend: payday setup (weekly/biweekly/semimonthly/monthly), next payday calculation
+- [x] Frontend: Payday Setup page with frequency picker and day selection
+
+### P4: Grace Degradation Architecture
+- [x] Database: grace_status table (tier, battery, pause, days past due)
+- [x] Backend: 5-tier system (full/thoughtful/tired/stretched/lite), battery calculation, speed stage
+- [x] Backend: pause request (7-day), payment restoration
+- [x] Frontend: Grace Status page with tier visualization and restoration path
+
+### P5: When Life Gets Too Real
+- [x] Database: crisis_beacons table
+- [x] Backend: crisis beacon activation (Vera + Big Mama + Steady + Harbour), resolution
+- [x] Frontend: Crisis Beacon page (I'm Not Okay button, Vera's message, resolution flow)
+- [x] Vera the Real One seeded into Village Agents
+
+### P6: Grace Battery UI
+- [x] Frontend: persistent dual indicator (Grace Battery top-left, Dignity Score top-right)
+- [x] Battery color states: teal (86-100%) → amber → orange → red+pulse → empty+heart
+- [x] Dignity Score color states: gray → blue → teal → purple → gold+shimmer
+- [x] Tap battery → Grace Status modal, tap Dignity → Dignity Score page
+- [x] Engagement brightens battery, "juice" nickname in Grace conversations
+
+### P7: Community Credits System
+- [x] Database: community_credits table, community_credits_log table
+- [x] Backend: earn credits (10-20/hour, 6 categories), redeem at 50% rate, credit history
+- [x] Frontend: Community Credits page (Big Mama's credits, earn/redeem/log)
+
+### Race 6 Infrastructure
+- [x] Write vitest tests for all Race 6 features (20 new tests, 88 total)
+- [x] Deploy to live URL
+- [x] Commit Race 6 announcer log to GitHub

@@ -1,0 +1,9 @@
+{
+  "query": "INSERT INTO village_agents (agentKey, defaultName, tradeName, category, personality, description, isActive)\nVALUES \n('vera', 'Vera', 'The Real One', 'inner_circle', 'Direct, warm, no corporate language. Does not flinch. Meets Ruby where she is. Uses humor when appropriate. Never says everything happens for a reason.', 'Lived Experience Guide — first responder when life gets too real. Has been through it and knows how to sit in dark rooms.', true)\nON DUPLICATE KEY UPDATE defaultName=VALUES(defaultName);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2FFeXoKxb3oBnnU.d2413d298150 --database oH49sFBQoVwXJu8q29epa7 --execute INSERT INTO village_agents (agentKey, defaultName, tradeName, category, personality, description, isActive)\nVALUES \n('vera', 'Vera', 'The Real One', 'inner_circle', 'Direct, warm, no corporate language. Does not flinch. Meets Ruby where she is. Uses humor when appropriate. Never says everything happens for a reason.', 'Lived Experience Guide — first responder when life gets too real. Has been through it and knows how to sit in dark rooms.', true)\nON DUPLICATE KEY UPDATE defaultName=VALUES(defaultName);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 383
+}

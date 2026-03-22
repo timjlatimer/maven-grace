@@ -1,0 +1,8 @@
+{
+  "query": "INSERT INTO village_agents (agentKey, displayName, tradeName, category, personality, description, isActive)\nVALUES \n('vera', 'Vera', 'The Real One', 'crisis', 'Direct, warm, no corporate language. Does not flinch. Meets Ruby where she is. Uses humor when appropriate. Never says everything happens for a reason.', 'Lived Experience Guide — first responder when life gets too real. Has been through it and knows how to sit in dark rooms.', true)\nON DUPLICATE KEY UPDATE displayName=VALUES(displayName);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2FFeXoKxb3oBnnU.d2413d298150 --database oH49sFBQoVwXJu8q29epa7 --execute INSERT INTO village_agents (agentKey, displayName, tradeName, category, personality, description, isActive)\nVALUES \n('vera', 'Vera', 'The Real One', 'crisis', 'Direct, warm, no corporate language. Does not flinch. Meets Ruby where she is. Uses humor when appropriate. Never says everything happens for a reason.', 'Lived Experience Guide — first responder when life gets too real. Has been through it and knows how to sit in dark rooms.', true)\nON DUPLICATE KEY UPDATE displayName=VALUES(displayName);",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'displayName' in 'field list'"
+  ]
+}

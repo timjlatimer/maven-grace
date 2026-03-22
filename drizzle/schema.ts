@@ -403,3 +403,84 @@ export const agentIntroductions = mysqlTable("agent_introductions", {
   renamedAt: timestamp("renamedAt"),
   interactionCount: int("interactionCount").default(0).notNull(),
 });
+
+// ── Race 6 Tables ──────────────────────────────────────────────────────
+
+// Grace Status — tracks degradation tier, battery level, speed state
+export const graceStatus = mysqlTable("grace_status", {
+  id: int("id").autoincrement().primaryKey(),
+  profileId: int("profileId").notNull(),
+  batteryLevel: int("batteryLevel").default(100).notNull(),          // 0-100
+  tier: varchar("tier", { length: 32 }).default("full").notNull(),   // full, essentials_lite, core, careful, lite
+  speedStage: varchar("speedStage", { length: 32 }).default("normal").notNull(), // normal, thoughtful, tired, stretched, running_low
+  daysPastDue: int("daysPastDue").default(0).notNull(),
+  pauseRequested: boolean("pauseRequested").default(false).notNull(),
+  pauseExpiresAt: timestamp("pauseExpiresAt"),
+  lastPaymentAt: timestamp("lastPaymentAt"),
+  dignityScore100Achieved: boolean("dignityScore100Achieved").default(false).notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+// Community Credits — Big Mama as keeper
+export const communityCredits = mysqlTable("community_credits", {
+  id: int("id").autoincrement().primaryKey(),
+  profileId: int("profileId").notNull(),
+  balance: int("balance").default(0).notNull(),                      // current credit balance
+  totalEarned: int("totalEarned").default(0).notNull(),
+  totalRedeemed: int("totalRedeemed").default(0).notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+// Community Credit Transactions — earning and spending log
+export const communityCreditsLog = mysqlTable("community_credits_log", {
+  id: int("id").autoincrement().primaryKey(),
+  profileId: int("profileId").notNull(),
+  type: varchar("type", { length: 32 }).notNull(),                   // earn, redeem
+  amount: int("amount").notNull(),                                   // credits earned or redeemed
+  category: varchar("category", { length: 64 }).notNull(),           // teaching, barter, village_hands, mentoring, helping
+  description: text("description"),
+  validatedBy: varchar("validatedBy", { length: 64 }).default("big_mama").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+// Payday Detection — tracks Ruby's pay patterns
+export const paydayPatterns = mysqlTable("payday_patterns", {
+  id: int("id").autoincrement().primaryKey(),
+  profileId: int("profileId").notNull(),
+  frequency: varchar("frequency", { length: 32 }).notNull(),         // weekly, biweekly, semimonthly, monthly
+  nextPayday: timestamp("nextPayday"),
+  lastPayday: timestamp("lastPayday"),
+  dayOfWeek: int("dayOfWeek"),                                       // 0-6 for weekly/biweekly
+  dayOfMonth1: int("dayOfMonth1"),                                   // 1-31 for monthly/semimonthly
+  dayOfMonth2: int("dayOfMonth2"),                                   // second day for semimonthly
+  confidence: int("confidence").default(50).notNull(),               // 0-100 confidence in detection
+  source: varchar("source", { length: 32 }).default("manual").notNull(), // manual, detected, bank
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+// Crisis Beacon — "I'm Not Okay" signals
+export const crisisBeacons = mysqlTable("crisis_beacons", {
+  id: int("id").autoincrement().primaryKey(),
+  profileId: int("profileId").notNull(),
+  status: varchar("status", { length: 32 }).default("active").notNull(), // active, resolved, escalated
+  agentsActivated: text("agentsActivated"),                          // JSON array of agent keys
+  communityAlertSent: boolean("communityAlertSent").default(false).notNull(),
+  resolvedAt: timestamp("resolvedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+// Destiny Moonshot — tracks the reveal ceremony
+export const destinyMoonshots = mysqlTable("destiny_moonshots", {
+  id: int("id").autoincrement().primaryKey(),
+  profileId: int("profileId").notNull(),
+  revealed: boolean("revealed").default(false).notNull(),
+  revealedAt: timestamp("revealedAt"),
+  moonshotStatement: text("moonshotStatement"),
+  coreValues: text("coreValues"),                                    // JSON array
+  strengths: text("strengths"),                                      // JSON array
+  destinyAnthem: text("destinyAnthem"),                              // elevated song lyrics
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
