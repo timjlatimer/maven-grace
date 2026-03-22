@@ -191,6 +191,43 @@ function GraceStatusModal({
   );
 }
 
+// ── Demo Status Modal (unauthenticated preview) ────────────────────────
+function DemoStatusModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [, navigate] = useLocation();
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <BatteryIcon level={100} color="#2dd4bf" />
+            Grace's Juice Level — Preview
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="text-center">
+            <div className="text-4xl font-bold" style={{ color: "#2dd4bf" }}>100%</div>
+            <p className="text-sm text-muted-foreground mt-1">Fully powered — ready for you</p>
+          </div>
+          <div className="bg-teal-50 dark:bg-teal-950/30 rounded-lg p-3 border border-teal-200 dark:border-teal-800">
+            <p className="text-sm italic">
+              "I'm at full juice and ready to go. Meet me inside — I've been waiting for you."
+            </p>
+          </div>
+          <div className="bg-muted/50 rounded-lg p-3 text-sm text-muted-foreground">
+            This bar shows Grace's energy level and your Dignity Score — two things that grow as you use Maven. The more you engage, the more juice we both have.
+          </div>
+          <Button
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
+            onClick={() => { onClose(); navigate("/grace"); }}
+          >
+            Meet Grace — Get Started Free
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ── Main GraceBattery Component ────────────────────────────────────────
 export default function GraceBattery() {
   const { user } = useAuth();
@@ -208,9 +245,58 @@ export default function GraceBattery() {
     { enabled: !!profileId, refetchInterval: 60000 }
   );
 
-  // Don't render if no user or no profile
-  if (!user || !profileId) return null;
+  // ── DEMO STATE: unauthenticated or no profile yet ──────────────────
+  const isDemo = !user || !profileId;
 
+  if (isDemo) {
+    const demoBatteryColor = "#2dd4bf"; // full teal — 100%
+    const demoDignityColor = "#9ca3af"; // gray — starting state
+    return (
+      <>
+        <div
+          className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3 py-1.5 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border-b border-gray-200/50 dark:border-gray-700/50"
+          style={{ height: "36px" }}
+        >
+          {/* Left: Grace Battery (demo — 100%) */}
+          <button
+            onClick={() => setStatusModalOpen(true)}
+            className="flex items-center gap-1.5 hover:opacity-80 transition-opacity"
+            aria-label="Grace juice level: 100% — preview"
+          >
+            <BatteryIcon level={100} color={demoBatteryColor} />
+            <span className="text-xs font-medium tabular-nums" style={{ color: demoBatteryColor }}>
+              100%
+            </span>
+          </button>
+
+          {/* Center: subtle Maven mark */}
+          <span className="text-xs text-muted-foreground font-medium tracking-wide opacity-50">
+            MAVEN
+          </span>
+
+          {/* Right: Dignity Score (demo — starting state) */}
+          <button
+            onClick={() => setStatusModalOpen(true)}
+            className="flex items-center gap-1.5 hover:opacity-80 transition-opacity"
+            aria-label="Dignity Score: starting — preview"
+          >
+            <span className="text-xs font-medium tabular-nums" style={{ color: demoDignityColor }}>
+              —
+            </span>
+            <DignityRing score={0} color={demoDignityColor} />
+          </button>
+        </div>
+
+        {/* Demo Modal */}
+        <DemoStatusModal
+          open={statusModalOpen}
+          onClose={() => setStatusModalOpen(false)}
+        />
+      </>
+    );
+  }
+
+  // ── LIVE STATE: authenticated user with profile ────────────────────
   const batteryLevel = statusQuery.data?.batteryLevel ?? 100;
   const batteryColor = getBatteryColor(batteryLevel);
 

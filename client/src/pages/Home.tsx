@@ -14,7 +14,8 @@ export default function Home() {
     <div className="min-h-screen bg-background pb-20">
       {/* Hero — "Maven and Grace Give a Shit" */}
       <div className="relative overflow-hidden bg-gradient-to-br from-primary/15 via-accent/20 to-maven-rose/10 px-4 pt-12 pb-10">
-        <div className="absolute top-6 right-6 opacity-10">
+        {/* Decorative background art — intentionally faint, z-index below content */}
+        <div className="absolute top-6 right-6 opacity-5 pointer-events-none select-none" style={{ zIndex: 0 }}>
           <Heart className="w-28 h-28 text-maven-rose" />
         </div>
         <motion.div

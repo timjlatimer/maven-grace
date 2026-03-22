@@ -248,3 +248,13 @@
 - [x] Write vitest tests for all Race 6 features (20 new tests, 88 total)
 - [x] Deploy to live URL
 - [x] Commit Race 6 announcer log to GitHub
+
+## Race 6 Hotfix — Grace Battery Dual Indicator (Mar 21, 2026)
+
+- [x] Fix GraceBattery: remove auth gate (if !user return null) — show demo state for unauthenticated users
+- [x] Demo state: Grace Battery at 100% (full teal), Dignity Score at 0 (gray ring), "preview" label
+- [x] Verify heart icon on Home.tsx is decorative background art (not functional) — reduced to opacity-5, pointer-events-none, z-index 0
+- [x] Confirm dual indicator visible on ALL pages including landing page
+- [x] Run all tests — confirmed 88 passing across 7 files
+- [ ] Commit to GitHub timjlatimer/maven-grace with hash — IN PROGRESS
+- [ ] Deploy to mavengrace-oh49sfbq.manus.space — IN PROGRESS
