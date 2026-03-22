@@ -1100,9 +1100,18 @@ export async function upsertGracePreferences(profileId: number, data: Partial<{
   kamiMomentEnabled: boolean;
   kamiMomentTime: string;
   graceHomeSetting: string;
+  culturalBackground: string;
+  languageStyle: "casual" | "formal" | "warm" | "direct";
+  coachingMode: "chat" | "coach";
+  reducedMotion: boolean;
+  highContrast: boolean;
+  fontSize: "normal" | "large" | "xlarge";
+  onboardingStep: number;
+  onboardingComplete: boolean;
   lastDailySelfAt: Date;
   lastVulnerabilityAt: Date;
   lastSelfCareCheckAt: Date;
+  lastCelebrationAt: Date;
 }>) {
   const db = await getDb();
   if (!db) return null;

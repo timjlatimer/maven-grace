@@ -281,9 +281,62 @@ export const appRouter = router({
           }
         } catch (e) { /* ignore bill fetch errors */ }
 
+        // Cultural context (Race 18)
+        const CULTURAL_PROMPTS: Record<string, string> = {
+          universal: "",
+          african_american: "\nCULTURAL CONTEXT: Ruby identifies with African American culture. Reference soul food, community traditions, church culture, and family gatherings naturally. Use warm, affirming language. 'Girl, let me tell you...' is okay when appropriate.",
+          hispanic_latino: "\nCULTURAL CONTEXT: Ruby identifies with Hispanic/Latino culture. Reference family-centered values, traditional foods, community celebrations naturally. Sprinkle in warmth like 'mija' when it feels right.",
+          indigenous: "\nCULTURAL CONTEXT: Ruby identifies with Indigenous culture. Reference community, land, elder wisdom, and interconnectedness naturally. Respect for tradition and collective wellbeing.",
+          south_asian: "\nCULTURAL CONTEXT: Ruby identifies with South Asian culture. Reference family obligations, cultural celebrations, community bonds, and food traditions naturally.",
+          east_asian: "\nCULTURAL CONTEXT: Ruby identifies with East Asian culture. Reference family honor, education values, food traditions, and community naturally.",
+          middle_eastern: "\nCULTURAL CONTEXT: Ruby identifies with Middle Eastern culture. Reference hospitality, family bonds, food traditions, and community naturally.",
+          european: "\nCULTURAL CONTEXT: Ruby identifies with European heritage. Reference practical traditions, community values, and seasonal customs naturally.",
+          caribbean: "\nCULTURAL CONTEXT: Ruby identifies with Caribbean culture. Reference island traditions, community bonds, food culture, and resilience naturally.",
+        };
+        const culturalContext = prefs?.culturalBackground ? (CULTURAL_PROMPTS[prefs.culturalBackground] || "") : "";
+
+        // Coaching mode (Race 18)
+        const coachingContext = prefs?.coachingMode === 'coach'
+          ? "\nCOACHING MODE ACTIVE: Ruby has asked you to be her financial coach. Give structured, actionable advice. Use numbered steps. Set specific goals. Follow up on previous action items. Be direct but warm — like a coach who believes in her player."
+          : "";
+
+        // Emotional tone detection (Race 18)
+        const lastUserMsg = message.toLowerCase();
+        const stressWords = ['stressed', 'overwhelmed', 'can\'t', 'broke', 'scared', 'worried', 'anxious', 'crying', 'tired', 'exhausted', 'give up', 'hopeless'];
+        const joyWords = ['excited', 'happy', 'great', 'amazing', 'wonderful', 'paid off', 'saved', 'proud', 'did it', 'finally'];
+        const isStressed = stressWords.some(w => lastUserMsg.includes(w));
+        const isJoyful = joyWords.some(w => lastUserMsg.includes(w));
+        let emotionalToneContext = "";
+        if (isStressed) {
+          emotionalToneContext = "\nEMOTIONAL TONE: Ruby seems stressed or overwhelmed right now. Lower your energy. Be calm, grounding, and reassuring. Don't try to fix everything at once. Just be present. 'I hear you. That's a lot. Let's just breathe for a second before we figure this out together.'";
+        } else if (isJoyful) {
+          emotionalToneContext = "\nEMOTIONAL TONE: Ruby seems happy or excited! Match her energy! Celebrate with her. Be genuinely thrilled. 'Oh my GOD, that's amazing! I'm so proud of you! Tell me everything!'";
+        }
+
+        // Celebration engine (Race 18)
+        let celebrationContext = "";
+        if (prefs && (!prefs.lastCelebrationAt || (Date.now() - new Date(prefs.lastCelebrationAt).getTime()) > 24 * 60 * 60 * 1000)) {
+          try {
+            const dignity = await db.getLatestDignityScore(profile.id);
+            const prevDignity = (await db.getDignityScoreHistory(profile.id, 2))[1];
+            if (dignity && prevDignity && dignity.totalScore > prevDignity.totalScore) {
+              celebrationContext = `\nCELEBRATION: Ruby's Dignity Score went UP from ${prevDignity.totalScore} to ${dignity.totalScore}! Celebrate this specifically. 'I noticed something — your Dignity Score went up! That's not just a number, that's YOU making real progress.' Mark this celebration.`;
+            }
+          } catch (e) { /* ignore */ }
+        }
+
+        // Growth journal (Race 18)
+        let growthContext = "";
+        try {
+          const summary = await db.getConversationSummary(profile.id);
+          if (summary && summary.summary) {
+            growthContext = `\nGROWTH JOURNAL: From your past conversations with Ruby: "${summary.summary}" — Reference this naturally when relevant. 'Remember when we talked about...' or 'You mentioned last time that...'`;
+          }
+        } catch (e) { /* ignore */ }
+
         // Build messages for LLM
         const llmMessages = [
-          { role: "system" as const, content: GRACE_SYSTEM_PROMPT + personalityContext + memoryContext + profileContext + stepContext + modeContext + vulnerabilityContext + dailySelfContext + selfCareContext + billAlertContext },
+          { role: "system" as const, content: GRACE_SYSTEM_PROMPT + personalityContext + culturalContext + coachingContext + memoryContext + profileContext + stepContext + modeContext + vulnerabilityContext + dailySelfContext + selfCareContext + billAlertContext + emotionalToneContext + celebrationContext + growthContext },
           ...history.slice(-16).map(h => ({
             role: h.role as "user" | "assistant",
             content: h.content
@@ -772,7 +825,7 @@ MOOD: [uplifting/warm/empowering]
     status: publicProcedure.query(() => ({
       configured: isKieAiConfigured(),
       provider: "KIE.AI",
-      model: "elevenlabs/text-to-speech-multilingual-v2",
+      model: "kie-ai/text-to-speech",
       voice: "Maria (hpp4J3VqNfWAUOO0d1Us)",
     })),
   }),
@@ -2173,6 +2226,14 @@ MOOD: [uplifting/warm/empowering]
           kamiMomentEnabled: true,
           kamiMomentTime: '07:00',
           graceHomeSetting: 'auto',
+          culturalBackground: 'universal',
+          languageStyle: 'warm' as const,
+          coachingMode: 'chat' as const,
+          reducedMotion: false,
+          highContrast: false,
+          fontSize: 'normal' as const,
+          onboardingStep: 0,
+          onboardingComplete: false,
         };
       }),
 
@@ -2393,6 +2454,80 @@ MOOD: [uplifting/warm/empowering]
           personality: prefs?.personality || 'bestfriend',
           tier: prefs?.consciousnessTier || 'free',
         };
+      }),
+    // ── Race 18: Cultural Profile ──────────────────────────────────
+    setCulturalProfile: publicProcedure
+      .input(z.object({
+        profileId: z.number(),
+        culturalBackground: z.string().optional(),
+        languageStyle: z.enum(['casual', 'formal', 'warm', 'direct']).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { profileId, ...data } = input;
+        await db.upsertGracePreferences(profileId, data);
+        return { success: true };
+      }),
+
+    // ── Race 18: Coaching Mode Toggle ────────────────────────────────
+    setCoachingMode: publicProcedure
+      .input(z.object({
+        profileId: z.number(),
+        mode: z.enum(['chat', 'coach']),
+      }))
+      .mutation(async ({ input }) => {
+        await db.upsertGracePreferences(input.profileId, { coachingMode: input.mode });
+        return { success: true, mode: input.mode };
+      }),
+
+    // ── Race 18: Accessibility Settings ──────────────────────────────
+    updateAccessibility: publicProcedure
+      .input(z.object({
+        profileId: z.number(),
+        reducedMotion: z.boolean().optional(),
+        highContrast: z.boolean().optional(),
+        fontSize: z.enum(['normal', 'large', 'xlarge']).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { profileId, ...data } = input;
+        await db.upsertGracePreferences(profileId, data);
+        return { success: true };
+      }),
+
+    // ── Race 18: Onboarding Flow ─────────────────────────────────────
+    updateOnboarding: publicProcedure
+      .input(z.object({
+        profileId: z.number(),
+        step: z.number(),
+        complete: z.boolean().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        await db.upsertGracePreferences(input.profileId, {
+          onboardingStep: input.step,
+          ...(input.complete ? { onboardingComplete: true } : {}),
+        });
+        return { success: true, step: input.step };
+      }),
+
+    getOnboardingStatus: publicProcedure
+      .input(z.object({ profileId: z.number() }))
+      .query(async ({ input }) => {
+        const prefs = await db.getGracePreferences(input.profileId);
+        return {
+          step: prefs?.onboardingStep ?? 0,
+          complete: prefs?.onboardingComplete ?? false,
+          personality: prefs?.personality || 'bestfriend',
+          culturalBackground: prefs?.culturalBackground || 'universal',
+          scheduleType: prefs?.scheduleType || 'nine_to_five',
+          expertise: prefs?.expertise || 'general',
+        };
+      }),
+
+    // ── Race 18: Mark Celebration ─────────────────────────────────────
+    markCelebration: publicProcedure
+      .input(z.object({ profileId: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.upsertGracePreferences(input.profileId, { lastCelebrationAt: new Date() });
+        return { success: true };
       }),
   }),
 

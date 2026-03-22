@@ -13,6 +13,7 @@ import GraceAudioPlayer from "@/components/GraceAudioPlayer";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import GraceDailySelfBanner from "@/components/GraceDailySelfBanner";
+import CoachingModeToggle from "@/components/CoachingModeToggle";
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -380,8 +381,13 @@ export default function GraceChat() {
         )}
       </div>
 
-      {/* Grace's Daily Self — mood banner */}
-      {step > 8 && <GraceDailySelfBanner />}
+      {/* Grace's Daily Self — mood banner + coaching toggle */}
+      {step > 8 && (
+        <div className="flex items-center gap-2 px-4 pt-1">
+          <div className="flex-1"><GraceDailySelfBanner /></div>
+          {profileId && <CoachingModeToggle profileId={profileId} />}
+        </div>
+      )}
 
       {/* Chat Area */}
       <div className="flex-1 overflow-hidden" ref={scrollRef}>

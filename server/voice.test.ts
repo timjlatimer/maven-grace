@@ -44,7 +44,7 @@ describe("voice.status", () => {
 
     expect(status.configured).toBe(true);
     expect(status.provider).toBe("KIE.AI");
-    expect(status.model).toBe("elevenlabs/text-to-speech-multilingual-v2");
+    expect(status.model).toBe("kie-ai/text-to-speech");
     expect(status.voice).toContain("Maria");
   });
 });

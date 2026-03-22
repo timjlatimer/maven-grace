@@ -1,10 +1,26 @@
-// Maven Grace Service Worker — Push Notifications
+// Maven Grace Service Worker — Push Notifications + Offline Resilience
 // This file lives in client/public/ and is served at the root
 
-const CACHE_NAME = "maven-grace-v1";
+const CACHE_NAME = "maven-grace-v2";
+const OFFLINE_URL = "/offline.html";
+
+// Core routes to cache for offline access
+const PRECACHE_URLS = [
+  "/",
+  "/offline.html",
+  "/favicon.ico",
+];
 
 // Install event — cache essential assets
 self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(PRECACHE_URLS).catch(() => {
+        // Gracefully handle if some URLs fail to cache
+        console.log("[SW] Some precache URLs failed, continuing...");
+      });
+    })
+  );
   self.skipWaiting();
 });
 
@@ -18,6 +34,48 @@ self.addEventListener("activate", (event) => {
     )
   );
   self.clients.claim();
+});
+
+// Fetch event — network-first with cache fallback
+self.addEventListener("fetch", (event) => {
+  // Skip non-GET requests
+  if (event.request.method !== "GET") return;
+
+  // Skip API calls — they should fail naturally
+  const url = new URL(event.request.url);
+  if (url.pathname.startsWith("/api/")) return;
+
+  event.respondWith(
+    fetch(event.request)
+      .then((response) => {
+        // Cache successful responses for navigation requests
+        if (response.ok && event.request.mode === "navigate") {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone);
+          });
+        }
+        return response;
+      })
+      .catch(async () => {
+        // Network failed — try cache
+        const cached = await caches.match(event.request);
+        if (cached) return cached;
+
+        // For navigation requests, show offline page
+        if (event.request.mode === "navigate") {
+          const offlinePage = await caches.match(OFFLINE_URL);
+          if (offlinePage) return offlinePage;
+        }
+
+        // Return a basic offline response
+        return new Response("Grace is reconnecting...", {
+          status: 503,
+          statusText: "Service Unavailable",
+          headers: { "Content-Type": "text/plain" },
+        });
+      })
+  );
 });
 
 // Push event — show notification from Grace

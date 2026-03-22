@@ -533,10 +533,23 @@ export const gracePreferences = mysqlTable("grace_preferences", {
   kamiMomentTime: varchar("kamiMomentTime", { length: 8 }).default("07:00"),
   // Grace's living space (Ruby can define or let Grace describe)
   graceHomeSetting: varchar("graceHomeSetting", { length: 64 }).default("auto"), // auto, cozy_apartment, small_house, etc.
+  // Cultural profile (Race 18)
+  culturalBackground: varchar("culturalBackground", { length: 64 }).default("universal"),
+  languageStyle: mysqlEnum("languageStyle", ["casual", "formal", "warm", "direct"]).default("warm").notNull(),
+  // Coaching mode (Race 18)
+  coachingMode: mysqlEnum("coachingMode", ["chat", "coach"]).default("chat").notNull(),
+  // Accessibility (Race 18)
+  reducedMotion: boolean("reducedMotion").default(false).notNull(),
+  highContrast: boolean("highContrast").default(false).notNull(),
+  fontSize: mysqlEnum("fontSize", ["normal", "large", "xlarge"]).default("normal").notNull(),
+  // Onboarding (Race 18)
+  onboardingStep: int("onboardingStep").default(0).notNull(),
+  onboardingComplete: boolean("onboardingComplete").default(false).notNull(),
   // Daily self tracking
   lastDailySelfAt: timestamp("lastDailySelfAt"),
   lastVulnerabilityAt: timestamp("lastVulnerabilityAt"),
   lastSelfCareCheckAt: timestamp("lastSelfCareCheckAt"),
+  lastCelebrationAt: timestamp("lastCelebrationAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

@@ -1,0 +1,9 @@
+{
+  "query": "ALTER TABLE `grace_preferences` ADD `culturalBackground` varchar(64) DEFAULT 'universal';\nALTER TABLE `grace_preferences` ADD `languageStyle` enum('casual','formal','warm','direct') DEFAULT 'warm' NOT NULL;\nALTER TABLE `grace_preferences` ADD `coachingMode` enum('chat','coach') DEFAULT 'chat' NOT NULL;\nALTER TABLE `grace_preferences` ADD `reducedMotion` boolean DEFAULT false NOT NULL;\nALTER TABLE `grace_preferences` ADD `highContrast` boolean DEFAULT false NOT NULL;\nALTER TABLE `grace_preferences` ADD `fontSize` enum('normal','large','xlarge') DEFAULT 'normal' NOT NULL;\nALTER TABLE `grace_preferences` ADD `onboardingStep` int DEFAULT 0 NOT NULL;\nALTER TABLE `grace_preferences` ADD `onboardingComplete` boolean DEFAULT false NOT NULL;\nALTER TABLE `grace_preferences` ADD `lastCelebrationAt` timestamp;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2FFeXoKxb3oBnnU.d2413d298150 --database oH49sFBQoVwXJu8q29epa7 --execute ALTER TABLE `grace_preferences` ADD `culturalBackground` varchar(64) DEFAULT 'universal';\nALTER TABLE `grace_preferences` ADD `languageStyle` enum('casual','formal','warm','direct') DEFAULT 'warm' NOT NULL;\nALTER TABLE `grace_preferences` ADD `coachingMode` enum('chat','coach') DEFAULT 'chat' NOT NULL;\nALTER TABLE `grace_preferences` ADD `reducedMotion` boolean DEFAULT false NOT NULL;\nALTER TABLE `grace_preferences` ADD `highContrast` boolean DEFAULT false NOT NULL;\nALTER TABLE `grace_preferences` ADD `fontSize` enum('normal','large','xlarge') DEFAULT 'normal' NOT NULL;\nALTER TABLE `grace_preferences` ADD `onboardingStep` int DEFAULT 0 NOT NULL;\nALTER TABLE `grace_preferences` ADD `onboardingComplete` boolean DEFAULT false NOT NULL;\nALTER TABLE `grace_preferences` ADD `lastCelebrationAt` timestamp;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 4799
+}

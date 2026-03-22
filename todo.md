@@ -587,3 +587,14 @@
 - [x] Quick Actions Bar — 4-button grid: Add Bill, Log Expense, Talk to Grace, My Score
 - [x] Proactive Bill Alerts — injected into Grace's system prompt + visual alert card
 - [x] Milk Money Transaction History — visual list with borrow/repay icons and running balance
+
+## Race 18 — Grace's Cultural Intelligence & Onboarding Polish (March 22, 2026)
+
+- [x] Cultural Profile Setup — Ruby picks cultural background during onboarding, 9 cultures + language style
+- [x] Grace's Emotional Tone Detection — injected into system prompt, adapts based on cultural + language style
+- [x] Grace's Celebration Engine — CelebrationEngine component with particles, haptics, 5 celebration types
+- [x] Financial Coaching Mode Toggle — CoachingModeToggle in chat header, chat/coach modes with system prompt
+- [x] Accessibility Enhancements — /accessibility page with reduced motion, high contrast, 3 font sizes
+- [x] Onboarding Flow Polish — 4-step OnboardingFlow: personality → culture → schedule → expertise
+- [x] Grace's Growth Journal — conversation summaries injected into system prompt as growth context
+- [x] Offline Resilience — SW v2 with fetch interception, network-first cache, offline.html fallback

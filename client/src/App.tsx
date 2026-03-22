@@ -41,6 +41,7 @@ import FriendsWithGrace from "./pages/FriendsWithGrace";
 import GraceCalling from "./pages/GraceCalling";
 import GraceWorld from "./pages/GraceWorld";
 import FinancialDashboard from "./pages/FinancialDashboard";
+import AccessibilitySettings from "./pages/AccessibilitySettings";
 import PWAInstallPrompt from "./components/PWAInstallPrompt";
 
 function Router() {
@@ -78,6 +79,7 @@ function Router() {
       <Route path="/grace-calling" component={GraceCalling} />
       <Route path="/grace-world" component={GraceWorld} />
       <Route path="/finances" component={FinancialDashboard} />
+      <Route path="/accessibility" component={AccessibilitySettings} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

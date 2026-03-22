@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation, Link } from "wouter";
-import { Home, MessageCircle, Shield, TrendingUp, Map, Package, Wallet, Calendar, Milk, MoreHorizontal, X, Music, Star, Heart, Compass, BookOpen, Users, Battery, Coins, Clock, AlertTriangle, Rocket, Sparkles, Globe, Layers, BarChart3 } from "lucide-react";
+import { Home, MessageCircle, Shield, TrendingUp, Map, Package, Wallet, Calendar, Milk, MoreHorizontal, X, Music, Star, Heart, Compass, BookOpen, Users, Battery, Coins, Clock, AlertTriangle, Rocket, Sparkles, Globe, Layers, BarChart3, Accessibility } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const primaryNav = [
@@ -32,6 +32,7 @@ const moreNav = [
   { path: "/personality", icon: Sparkles, label: "Personality" },
   { path: "/friends", icon: Users, label: "Friends" },
   { path: "/consciousness", icon: Layers, label: "Tiers" },
+  { path: "/accessibility", icon: Accessibility, label: "Accessibility" },
 ];
 
 export default function BottomNav() {
