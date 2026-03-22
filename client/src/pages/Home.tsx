@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLocation } from "wouter";
-import { Heart, Gift, Music, Shield, TrendingUp, ArrowRight, Sparkles, Package, MapPin, ChevronDown, HelpCircle } from "lucide-react";
+import { Heart, Gift, Music, Shield, TrendingUp, ArrowRight, Sparkles, Package, MapPin, ChevronDown, HelpCircle, Lock, Eye, EyeOff, Users } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import { useGraceSession } from "@/hooks/useGraceSession";
 import { motion, AnimatePresence } from "framer-motion";
@@ -202,12 +202,36 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Testimonial placeholder */}
-        <div className="bg-muted/30 rounded-2xl p-5 mt-4 border border-border/50">
-          <p className="text-sm text-foreground/80 italic leading-relaxed">
-            "I found $47 a month I didn't know I was spending. Grace found it in 10 minutes."
-          </p>
-          <p className="text-xs text-muted-foreground mt-2">— A Maven member, Red Deer</p>
+        {/* Trust Badges */}
+        <div className="grid grid-cols-3 gap-2 mt-4">
+          <div className="bg-primary/5 rounded-xl p-3 text-center border border-primary/10">
+            <Lock className="w-5 h-5 text-primary mx-auto mb-1" />
+            <p className="text-[10px] font-semibold text-foreground">Bank-Level Privacy</p>
+          </div>
+          <div className="bg-destructive/5 rounded-xl p-3 text-center border border-destructive/10">
+            <EyeOff className="w-5 h-5 text-destructive mx-auto mb-1" />
+            <p className="text-[10px] font-semibold text-foreground">No Data Selling</p>
+          </div>
+          <div className="bg-grace/5 rounded-xl p-3 text-center border border-grace/10">
+            <Heart className="w-5 h-5 text-grace mx-auto mb-1" />
+            <p className="text-[10px] font-semibold text-foreground">Grace Never Quits</p>
+          </div>
+        </div>
+
+        {/* Testimonials */}
+        <div className="space-y-3 mt-4">
+          <div className="bg-muted/30 rounded-2xl p-5 border border-border/50">
+            <p className="text-sm text-foreground/80 italic leading-relaxed">
+              "I found $47 a month I didn't know I was spending. Grace found it in 10 minutes."
+            </p>
+            <p className="text-xs text-muted-foreground mt-2">— A Maven member, Red Deer</p>
+          </div>
+          <div className="bg-muted/30 rounded-2xl p-5 border border-border/50">
+            <p className="text-sm text-foreground/80 italic leading-relaxed">
+              "I cried the first time the box showed up. Nobody ever just... gave me stuff. No forms, no judgment."
+            </p>
+            <p className="text-xs text-muted-foreground mt-2">— A Maven member, Calgary</p>
+          </div>
         </div>
 
         {/* FAQ Section */}

@@ -1496,6 +1496,34 @@ MOOD: [uplifting/warm/empowering]
         });
         return { success: true, message: "Welcome back! Grace is at full power." };
       }),
+
+    // ─── SNOOZE (8 hours) ───────────────────────────────────
+    snooze: protectedProcedure
+      .input(z.object({ profileId: z.number() }))
+      .mutation(async ({ input }) => {
+        const snoozeUntil = new Date();
+        snoozeUntil.setHours(snoozeUntil.getHours() + 8);
+        await db.upsertGraceStatus(input.profileId, {
+          pauseRequested: true,
+          pauseExpiresAt: snoozeUntil,
+        });
+        return {
+          success: true,
+          snoozeUntil,
+          message: "Grace is taking a nap. She'll be back in 8 hours with something warm.",
+        };
+      }),
+
+    // ─── WAKE (cancel snooze early) ───────────────────────────
+    wake: protectedProcedure
+      .input(z.object({ profileId: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.upsertGraceStatus(input.profileId, {
+          pauseRequested: false,
+          pauseExpiresAt: null,
+        });
+        return { success: true, message: "Hey, I'm back! No pressure. Just checking in." };
+      }),
   }),
 
   // ─── COMMUNITY CREDITS ───────────────────────────────────────────

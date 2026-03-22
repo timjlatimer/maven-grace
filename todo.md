@@ -383,6 +383,37 @@
 
 ### Race 11 Completion
 - [x] Write vitest tests for Race 11 features (14 new tests, 176 total across 12 files)
+- [x] Commit to GitHub timjlatimer/maven-grace — commit 75c6ea6 confirmed live
+- [x] Commit announcer log to vault — commit f6bfb24 confirmed live
+- [x] Deploy to mavengrace-oh49sfbq.manus.space — deployed, checkpoint 75c6ea6d
+
+## Race 12 — Dignity + Trust + Grace Persistence Sprint (March 22, 2026)
+
+### P0 — Dignity Score Explainer + Visual Progress
+- [x] Each dimension now has actionable tip + link ("Cancel a subscription →" links to /vampire-slayer)
+- [x] Visual progress bars already existed — enhanced with percentage-based completion
+- [x] Current tier shown with motivational message per tier level
+- [x] "How to raise" is now inline per dimension — only shows when dimension < 100%
+
+### P1 — Community Credits Clarity
+- [x] Added "How Community Credits Work" explainer card with Earn/Redeem grid
+- [x] "Ways to earn" section shows all 6 categories with credit amounts
+- [x] Activity log already existed — verified working
+
+### P2 — Homepage Trust Signals
+- [x] Added 3 trust badges: Bank-Level Privacy (Lock), No Data Selling (EyeOff), Grace Never Quits (Heart)
+- [x] Added second testimonial from Calgary member ("I cried the first time the box showed up...")
+- [x] Trust badges use color-coded icons matching Maven brand
+
+### P3 — Grace Persistence Snooze UI
+- [x] Added snooze/wake endpoints to graceStatus router (8-hour snooze)
+- [x] Snooze button with warm messaging: "No guilt, no questions"
+- [x] "Grace is snoozed until X" status with Moon icon when active
+- [x] Wake Grace Up Early button with warm return message
+- [x] Messaging reinforces "Grace never gets cut. Snooze is just a nap."
+
+### Race 12 Completion
+- [x] Write vitest tests for Race 12 features (16 new tests, 192 total across 13 files)
 - [ ] Commit to GitHub timjlatimer/maven-grace
 - [ ] Commit announcer log to vault
 - [ ] Deploy to mavengrace-oh49sfbq.manus.space

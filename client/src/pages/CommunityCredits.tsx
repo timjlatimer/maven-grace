@@ -109,6 +109,41 @@ export default function CommunityCredits() {
           </CardContent>
         </Card>
 
+        {/* How It Works */}
+        <Card className="mb-4 border-grace/20 bg-grace/5">
+          <CardContent className="py-4 space-y-3">
+            <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+              <Star className="w-4 h-4 text-grace" /> How Community Credits Work
+            </h3>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="bg-background/60 rounded-lg p-3 text-center">
+                <Heart className="w-5 h-5 text-rose-500 mx-auto mb-1" />
+                <p className="text-xs font-semibold text-foreground">Earn</p>
+                <p className="text-[10px] text-muted-foreground">Help your community, log your hours</p>
+              </div>
+              <div className="bg-background/60 rounded-lg p-3 text-center">
+                <Coins className="w-5 h-5 text-amber-500 mx-auto mb-1" />
+                <p className="text-xs font-semibold text-foreground">Redeem</p>
+                <p className="text-[10px] text-muted-foreground">100 credits = $0.50 off your subscription</p>
+              </div>
+            </div>
+            <div className="bg-background/60 rounded-lg p-3">
+              <p className="text-xs font-semibold text-foreground mb-1">Ways to earn:</p>
+              <div className="grid grid-cols-2 gap-1">
+                {CATEGORIES.map(c => (
+                  <div key={c.value} className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                    <c.icon className="w-3 h-3 shrink-0" />
+                    <span>{c.label}: <strong className="text-foreground">{c.credits}</strong></span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <p className="text-[10px] text-muted-foreground italic text-center">
+              Credits charge Grace's battery. The more you give, the more Grace can give back.
+            </p>
+          </CardContent>
+        </Card>
+
         {/* Earn Credits */}
         <Card className="mb-4">
           <CardHeader>

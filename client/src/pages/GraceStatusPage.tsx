@@ -3,7 +3,8 @@ import { useGraceSession } from "@/hooks/useGraceSession";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Battery, BatteryCharging, Heart, Zap, AlertTriangle, CheckCircle2, Clock } from "lucide-react";
+import { ArrowLeft, Battery, BatteryCharging, Heart, Zap, AlertTriangle, CheckCircle2, Clock, Moon, Sun } from "lucide-react";
+import { toast } from "sonner";
 
 const TIER_INFO: Record<string, { name: string; color: string; description: string; features: string[]; removed: string[] }> = {
   full: {
@@ -54,14 +55,29 @@ export default function GraceStatusPage() {
   const [, navigate] = useLocation();
   const { profileId } = useGraceSession();
 
-  const { data: status } = trpc.graceStatus.get.useQuery(
+  const { data: status, refetch: refetchStatus } = trpc.graceStatus.get.useQuery(
     { profileId: profileId! },
     { enabled: !!profileId }
   );
 
+  const snoozeMut = trpc.graceStatus.snooze.useMutation({
+    onSuccess: (data) => {
+      toast.success(data.message);
+      refetchStatus();
+    },
+  });
+  const wakeMut = trpc.graceStatus.wake.useMutation({
+    onSuccess: (data) => {
+      toast.success(data.message);
+      refetchStatus();
+    },
+  });
+
   const tier = status?.tier || "full";
   const battery = status?.batteryLevel || 100;
   const info = TIER_INFO[tier] || TIER_INFO.full;
+  const isSnoozed = status?.pauseRequested && status?.pauseExpiresAt && new Date(status.pauseExpiresAt) > new Date();
+  const snoozeUntilStr = status?.pauseExpiresAt ? new Date(status.pauseExpiresAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
 
   return (
     <div className="min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-gradient-to-b from-slate-50 to-white dark:from-gray-900 dark:to-gray-950">
@@ -156,6 +172,54 @@ export default function GraceStatusPage() {
             </CardContent>
           </Card>
         )}
+
+        {/* Snooze / Wake Controls */}
+        <Card className="mb-4 border-indigo-200 dark:border-indigo-800 bg-indigo-50/50 dark:bg-indigo-950/20">
+          <CardContent className="pt-6 space-y-3">
+            <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+              <Moon className="w-4 h-4 text-indigo-500" /> Need a Break?
+            </h3>
+            {isSnoozed ? (
+              <div className="text-center space-y-3">
+                <div className="bg-indigo-100 dark:bg-indigo-900/40 rounded-xl p-4">
+                  <Moon className="w-8 h-8 text-indigo-400 mx-auto mb-2" />
+                  <p className="text-sm font-medium text-foreground">Grace is snoozed</p>
+                  <p className="text-xs text-muted-foreground">She'll be back at {snoozeUntilStr}</p>
+                  <p className="text-xs text-indigo-600 dark:text-indigo-400 italic mt-1">
+                    "Taking a little nap. I'll come back with something warm."
+                  </p>
+                </div>
+                <Button
+                  onClick={() => profileId && wakeMut.mutate({ profileId })}
+                  disabled={wakeMut.isPending}
+                  variant="outline"
+                  className="w-full"
+                >
+                  <Sun className="w-4 h-4 mr-2" />
+                  {wakeMut.isPending ? "Waking Grace..." : "Wake Grace Up Early"}
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">
+                  Sometimes you need space. Grace gets it. Snooze her for 8 hours — she'll come back with something warm. No guilt, no questions.
+                </p>
+                <Button
+                  onClick={() => profileId && snoozeMut.mutate({ profileId })}
+                  disabled={snoozeMut.isPending}
+                  variant="outline"
+                  className="w-full border-indigo-300 text-indigo-700 hover:bg-indigo-50"
+                >
+                  <Moon className="w-4 h-4 mr-2" />
+                  {snoozeMut.isPending ? "Snoozing..." : "Snooze Grace for 8 Hours"}
+                </Button>
+                <p className="text-[10px] text-muted-foreground text-center italic">
+                  Grace never gets cut. Snooze is just a nap — she always comes back.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Restoration Path */}
         {tier !== "full" && (

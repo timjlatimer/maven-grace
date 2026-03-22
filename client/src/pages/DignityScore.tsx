@@ -17,11 +17,11 @@ const TIER_CONFIG: Record<string, { label: string; color: string; emoji: string 
 };
 
 const DIMENSION_CONFIG = [
-  { key: "vampireSlayer" as const, label: "Vampire Slayer", icon: Shield, color: "#ef4444", desc: "Subscriptions cancelled" },
-  { key: "nsfShield" as const, label: "NSF Shield", icon: Banknote, color: "#3b82f6", desc: "NSF fees avoided" },
-  { key: "budgetMastery" as const, label: "Budget Mastery", icon: PiggyBank, color: "#22c55e", desc: "Budget adherence" },
-  { key: "milkMoneyTrust" as const, label: "Milk Money Trust", icon: Milk, color: "#a855f7", desc: "Repayment record" },
-  { key: "engagement" as const, label: "Engagement", icon: Heart, color: "#f97316", desc: "Activity & promises kept" },
+  { key: "vampireSlayer" as const, label: "Vampire Slayer", icon: Shield, color: "#ef4444", desc: "Subscriptions cancelled", tip: "Cancel a subscription you don't use", link: "/vampire-slayer" },
+  { key: "nsfShield" as const, label: "NSF Shield", icon: Banknote, color: "#3b82f6", desc: "NSF fees avoided", tip: "Set up bill reminders to avoid overdrafts", link: "/bills" },
+  { key: "budgetMastery" as const, label: "Budget Mastery", icon: PiggyBank, color: "#22c55e", desc: "Budget adherence", tip: "Add your income and expenses to your budget", link: "/budget" },
+  { key: "milkMoneyTrust" as const, label: "Milk Money Trust", icon: Milk, color: "#a855f7", desc: "Repayment record", tip: "Repay a Milk Money borrow on time", link: "/milk-money" },
+  { key: "engagement" as const, label: "Engagement", icon: Heart, color: "#f97316", desc: "Activity & promises kept", tip: "Keep a promise or chat with Grace", link: "/grace" },
 ];
 
 function RadialProgress({ score, size = 180 }: { score: number; size?: number }) {
@@ -56,9 +56,10 @@ function RadialProgress({ score, size = 180 }: { score: number; size?: number })
   );
 }
 
-function DimensionBar({ label, value, max, color, icon: Icon, desc }: {
-  label: string; value: number; max: number; color: string; icon: typeof Shield; desc: string;
+function DimensionBar({ label, value, max, color, icon: Icon, desc, tip, link, onNavigate }: {
+  label: string; value: number; max: number; color: string; icon: typeof Shield; desc: string; tip: string; link: string; onNavigate: (path: string) => void;
 }) {
+  const pct = (value / max) * 100;
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between">
@@ -73,11 +74,22 @@ function DimensionBar({ label, value, max, color, icon: Icon, desc }: {
           className="h-full rounded-full"
           style={{ backgroundColor: color }}
           initial={{ width: 0 }}
-          animate={{ width: `${(value / max) * 100}%` }}
+          animate={{ width: `${pct}%` }}
           transition={{ duration: 1, ease: "easeOut", delay: 0.3 }}
         />
       </div>
-      <p className="text-xs text-muted-foreground">{desc}</p>
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-muted-foreground">{desc}</p>
+        {pct < 100 && (
+          <button
+            onClick={() => onNavigate(link)}
+            className="text-[10px] font-medium underline underline-offset-2"
+            style={{ color }}
+          >
+            {tip} →
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -164,6 +176,9 @@ export default function DignityScore() {
                   color={dim.color}
                   icon={dim.icon}
                   desc={dim.desc}
+                  tip={dim.tip}
+                  link={dim.link}
+                  onNavigate={navigate}
                 />
               ))}
             </CardContent>
