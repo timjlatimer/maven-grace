@@ -12,6 +12,7 @@ import BottomNav from "@/components/BottomNav";
 import GraceAudioPlayer from "@/components/GraceAudioPlayer";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
+import GraceDailySelfBanner from "@/components/GraceDailySelfBanner";
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -357,6 +358,9 @@ export default function GraceChat() {
           </div>
         )}
       </div>
+
+      {/* Grace's Daily Self — mood banner */}
+      {step > 8 && <GraceDailySelfBanner />}
 
       {/* Chat Area */}
       <div className="flex-1 overflow-hidden" ref={scrollRef}>

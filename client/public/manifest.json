@@ -1,0 +1,18 @@
+{
+  "name": "Maven Grace — Support at Your Door",
+  "short_name": "Maven Grace",
+  "description": "Grace is your neighbor who always gives a shit. Financial empowerment, dignity, and real help — delivered with love.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#2dd4bf",
+  "orientation": "portrait",
+  "categories": ["finance", "lifestyle", "social"],
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ]
+}

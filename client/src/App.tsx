@@ -39,6 +39,8 @@ import PersonalityDial from "./pages/PersonalityDial";
 import ConsciousnessTier from "./pages/ConsciousnessTier";
 import FriendsWithGrace from "./pages/FriendsWithGrace";
 import GraceCalling from "./pages/GraceCalling";
+import GraceWorld from "./pages/GraceWorld";
+import PWAInstallPrompt from "./components/PWAInstallPrompt";
 
 function Router() {
   return (
@@ -73,6 +75,7 @@ function Router() {
       <Route path="/consciousness" component={ConsciousnessTier} />
       <Route path="/friends" component={FriendsWithGrace} />
       <Route path="/grace-calling" component={GraceCalling} />
+      <Route path="/grace-world" component={GraceWorld} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
@@ -163,6 +166,7 @@ function App() {
             <div style={{ paddingTop: "32px", paddingBottom: "56px" }}>
               <Router />
             </div>
+            <PWAInstallPrompt />
           </HeartbeatOrchestrator>
         </TooltipProvider>
       </ThemeProvider>

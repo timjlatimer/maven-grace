@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { fireHaptic } from "@/lib/haptics";
 
 // ── Session storage key for dismissal ─────────────────────────────────
 const HEARTBEAT_DISMISSED_KEY = "maven-grace-heartbeat-dismissed";
@@ -169,6 +170,21 @@ export default function GraceHeartbeat({
       };
     }
   }, []);
+
+  // Fire emotional haptic based on scenario
+  useEffect(() => {
+    const hapticMap: Record<string, string> = {
+      misses_ruby: "missing_ruby",
+      found_something: "excited",
+      morning_return: "morning_wake",
+      grace_worried: "worried",
+      grace_excited: "celebration",
+      promise_due: "gentle_love",
+      neighborhood_news: "excited",
+    };
+    const emotion = hapticMap[scenario];
+    if (emotion) fireHaptic(emotion);
+  }, [scenario]);
 
   // Cycle through lines with fade in/out
   useEffect(() => {

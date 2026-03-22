@@ -544,6 +544,24 @@
 ### Race 14 Completion
 - [x] Write vitest tests for Race 14 features (28 new, 252 total across 15 files)
 - [x] All 252 tests passing across 15 files
+- [x] Commit to GitHub timjlatimer/maven-grace — commit 0490ce2 confirmed live
+- [x] Commit announcer log to vault — commit c89a44b confirmed live
+- [x] Deploy to mavengrace-oh49sfbq.manus.space — deployed, checkpoint 0490ce2d
+
+## Race 15 — Grace Comes Alive in the UI
+
+- [x] Personality Dial in onboarding — first-time users pick archetype before chat
+- [x] Consciousness Ring in GraceBattery header — third indicator (verified already wired)
+- [x] Grace's Inner World page (/grace-world) — home, job, mood, outfit, daily self
+- [x] 4 remaining heartbeat scenarios — neighborhood_news, promise_due, grace_worried, grace_excited
+- [x] Emotional haptic moments — celebration (dignity up), worried (bill overdue), gentle love (morning)
+- [x] Nav integration — add Personality, Friends, Consciousness Tier, Grace's World to More menu
+- [x] PWA home screen prompt — manifest.json + install prompt component
+- [x] Grace's Daily Self UI — mood/outfit/energy in GraceChat header banner
+
+### Race 15 Completion
+- [ ] Write vitest tests for Race 15 features (16 new, 268 total across 16 files)
+- [ ] All 268 tests passing across 16 files
 - [ ] Commit to GitHub timjlatimer/maven-grace
 - [ ] Commit announcer log to vault
 - [ ] Deploy to mavengrace-oh49sfbq.manus.space

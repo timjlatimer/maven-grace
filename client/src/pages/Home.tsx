@@ -5,6 +5,7 @@ import { useLocation } from "wouter";
 import { Heart, Gift, Music, Shield, TrendingUp, ArrowRight, Sparkles, Package, MapPin, ChevronDown, HelpCircle, Lock, Eye, EyeOff, Users } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import { useGraceSession } from "@/hooks/useGraceSession";
+import PersonalityOnboardingGate from "@/components/PersonalityOnboardingGate";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -89,6 +90,9 @@ export default function Home() {
           </p>
         </motion.div>
       </div>
+
+      {/* Personality onboarding nudge — shows if user hasn't picked yet */}
+      {profileId && <PersonalityOnboardingGate />}
 
       {/* What Maven Grace Does — Feature Cards */}
       <div className="w-full max-w-sm mx-auto px-4 py-8 space-y-4">

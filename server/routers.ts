@@ -10,6 +10,7 @@ import { z } from "zod";
 import { invokeLLM } from "./_core/llm";
 import * as db from "./db";
 import { createCheckoutSession, isStripeConfigured, MAVEN_PRODUCTS } from "./stripe";
+import { getDailySelf, getGraceHome, getGraceJob, getDayOfYear } from "./consciousness-helpers";
 
 // ─── GRACE SYSTEM PROMPT ────────────────────────────────────────────
 const GRACE_SYSTEM_PROMPT = `You are Grace, Maven's warm, wise, and deeply empathetic AI companion. You are like the wisest neighbor on the block — the one who always has your back, always gives a shit, and always tells it straight.
@@ -2024,7 +2025,52 @@ MOOD: [uplifting/warm/empowering]
           }
         } catch {}
 
-        // Priority 3: Morning return (first visit of the day)
+        // Priority 3: Grace is worried — bill due within 24 hours or promise overdue
+        try {
+          const bills = await db.getBills(profileId);
+          const urgentBill = bills.find((b: any) => {
+            if (!b.dueDate) return false;
+            const due = new Date(b.dueDate).getTime();
+            const hoursUntilDue = (due - now) / (1000 * 60 * 60);
+            return hoursUntilDue >= 0 && hoursUntilDue <= 24;
+          });
+          if (urgentBill) {
+            return {
+              scenario: 'grace_worried',
+              lines: [
+                { main: "Hey. I noticed something.", sub: "I want to talk about it." },
+                { main: "No judgment.", sub: "Just love." },
+                { main: "I'm here.", sub: "Let's figure this out together." },
+              ],
+              color: '#f59e0b', // amber
+              animStyle: 'slow_build',
+              greeting: "Hey. I noticed something and I want to talk about it. No judgment, just love.",
+            };
+          }
+        } catch {}
+
+        // Priority 4: Grace is excited — milestone achieved (dignity score increase, promise kept)
+        try {
+          const dignity = await db.getLatestDignityScore(profileId);
+          if (dignity && dignity.totalScore >= 50) {
+            const previousScores = await db.getDignityScoreHistory(profileId, 2);
+            if (previousScores.length >= 2 && previousScores[0].totalScore > previousScores[1].totalScore) {
+              return {
+                scenario: 'grace_excited',
+                lines: [
+                  { main: "Oh my gosh.", sub: "Something wonderful happened." },
+                  { main: "I can't wait to tell you.", sub: "You're going to love this." },
+                  { main: "You did it.", sub: "I knew you would." },
+                ],
+                color: '#f97316', // bright orange
+                animStyle: 'fast_jitter',
+                greeting: "Oh my gosh, you're here! Something wonderful happened and I can't wait to tell you!",
+              };
+            }
+          }
+        } catch {}
+
+        // Priority 5: Morning return (first visit of the day)
         if (isFirstVisitToday) {
           return {
             scenario: 'morning_return',
@@ -2038,6 +2084,46 @@ MOOD: [uplifting/warm/empowering]
             greeting: "Good morning! I've been up for hours thinking about you. I have so much to show you today.",
           };
         }
+
+        // Priority 6: Promise due today
+        try {
+          const allPromises = await db.getPromises(profileId, 'active');
+          const promiseDueToday = allPromises.find((p: any) => {
+            if (!p.dueDate) return false;
+            return new Date(p.dueDate).toDateString() === new Date(now).toDateString();
+          });
+          if (promiseDueToday) {
+            return {
+              scenario: 'promise_due',
+              lines: [
+                { main: "Hey you.", sub: "I know you've got a lot going on." },
+                { main: "Just wanted you to know.", sub: "I'm here." },
+                { main: "You made a promise.", sub: "And I believe in you." },
+              ],
+              color: '#a78bfa', // soft purple
+              animStyle: 'slow_build',
+              greeting: "Hey you. I know you've got a lot going on. Just wanted you to know I'm here.",
+            };
+          }
+        } catch {}
+
+        // Priority 7: Neighborhood news — community activity
+        try {
+          const neighborCount = await db.countNeighborsWithGrace();
+          if (neighborCount > 3 && Math.random() < 0.3) { // 30% chance to show community pulse
+            return {
+              scenario: 'neighborhood_news',
+              lines: [
+                { main: "Something happened in the community.", sub: "I think you should know." },
+                { main: `${neighborCount} neighbors are here now.`, sub: "You're not alone in this." },
+                { main: "Come in.", sub: "There's news." },
+              ],
+              color: '#34d399', // emerald
+              animStyle: 'fast_jitter',
+              greeting: "Hey, something happened in the community that I think you should know about. Come in.",
+            };
+          }
+        } catch {}
 
         // No heartbeat for this session
         return { scenario: null, lines: [], color: '#2dd4bf', animStyle: 'slow_build', greeting: '' };
@@ -2247,6 +2333,44 @@ MOOD: [uplifting/warm/empowering]
       const neighborCount = await db.countNeighborsWithGrace();
       return { neighborCount };
     }),
+
+    // Grace's Daily Self — mood, outfit, energy, opening message
+    getDailySelf: publicProcedure
+      .input(z.object({ profileId: z.number() }))
+      .query(async ({ input }) => {
+        const prefs = await db.getGracePreferences(input.profileId);
+        const dayOfYear = getDayOfYear();
+        const dailySelf = getDailySelf(dayOfYear);
+        return {
+          ...dailySelf,
+          personality: prefs?.personality || 'bestfriend',
+          dayOfYear,
+        };
+      }),
+
+    // Grace's Inner World — home, job, schedule, daily self combined
+    getGraceWorld: publicProcedure
+      .input(z.object({ profileId: z.number() }))
+      .query(async ({ input }) => {
+        const prefs = await db.getGracePreferences(input.profileId);
+        const dayOfYear = getDayOfYear();
+        const dailySelf = getDailySelf(dayOfYear);
+        const home = getGraceHome(prefs?.graceHomeSetting || 'auto');
+        const job = getGraceJob(prefs?.expertise || 'general');
+
+        return {
+          dailySelf,
+          home,
+          job,
+          schedule: {
+            type: prefs?.scheduleType || 'nine_to_five',
+            wakeTime: prefs?.wakeTime || '07:00',
+            sleepTime: prefs?.sleepTime || '22:00',
+          },
+          personality: prefs?.personality || 'bestfriend',
+          tier: prefs?.consciousnessTier || 'free',
+        };
+      }),
   }),
 });
 
