@@ -4,7 +4,8 @@ import {
   InsertUser, users,
   gracePersonProfiles, graceMemory, graceConversations,
   trojanHorseEntries, songs, financialImpactLog,
-  subscriptions, journeyMilestones, graceAmbientMessages
+  subscriptions, journeyMilestones, graceAmbientMessages,
+  essentialsOrders
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -983,4 +984,94 @@ export async function revealMoonshot(profileId: number, statement: string, coreV
     coreValues: JSON.stringify(coreValues),
     strengths: JSON.stringify(strengths),
   });
+}
+
+// ─── ESSENTIALS BOX FULFILLMENT (Race 7) ────────────────────────────
+
+export async function createEssentialsOrder(data: {
+  profileId?: number | null;
+  userId?: number | null;
+  memberName?: string | null;
+  memberEmail?: string | null;
+  deliveryAddress: string;
+  postalCode?: string | null;
+  itemsRequested?: string | null;
+  requestSource?: string;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(essentialsOrders).values({
+    profileId: data.profileId ?? undefined,
+    userId: data.userId ?? undefined,
+    memberName: data.memberName ?? undefined,
+    memberEmail: data.memberEmail ?? undefined,
+    deliveryAddress: data.deliveryAddress,
+    postalCode: data.postalCode ?? undefined,
+    itemsRequested: data.itemsRequested ?? undefined,
+    requestSource: data.requestSource ?? "member",
+    status: "pending",
+  });
+  return { id: result[0].insertId };
+}
+
+export async function listEssentialsOrders(statusFilter?: string) {
+  const db = await getDb();
+  if (!db) return [];
+  let query = db.select().from(essentialsOrders).orderBy(desc(essentialsOrders.createdAt));
+  if (statusFilter && statusFilter !== "all") {
+    query = query.where(eq(essentialsOrders.status, statusFilter as any)) as any;
+  }
+  return query;
+}
+
+export async function getEssentialsOrder(orderId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db.select().from(essentialsOrders).where(eq(essentialsOrders.id, orderId)).limit(1);
+  return rows[0] ?? null;
+}
+
+export async function updateEssentialsOrderStatus(orderId: number, status: string) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(essentialsOrders).set({
+    status: status as any,
+    statusUpdatedAt: new Date(),
+  }).where(eq(essentialsOrders.id, orderId));
+}
+
+export async function updateEssentialsOrderNotes(orderId: number, notes: string) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(essentialsOrders).set({ notes }).where(eq(essentialsOrders.id, orderId));
+}
+
+export async function updateEssentialsOrderCourier(orderId: number, courierMethod: string, trackingNumber?: string) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(essentialsOrders).set({
+    courierMethod,
+    trackingNumber: trackingNumber ?? undefined,
+  }).where(eq(essentialsOrders.id, orderId));
+}
+
+export async function getMemberOrders(profileId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(essentialsOrders)
+    .where(eq(essentialsOrders.profileId, profileId))
+    .orderBy(desc(essentialsOrders.createdAt));
+}
+
+export async function getEssentialsOrderStats() {
+  const db = await getDb();
+  if (!db) return { total: 0, pending: 0, packed: 0, shipped: 0, delivered: 0 };
+  const all = await db.select().from(essentialsOrders);
+  return {
+    total: all.length,
+    pending: all.filter(o => o.status === "pending").length,
+    packed: all.filter(o => o.status === "packed").length,
+    shipped: all.filter(o => o.status === "shipped").length,
+    delivered: all.filter(o => o.status === "delivered").length,
+  };
 }

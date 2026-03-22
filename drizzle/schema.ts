@@ -472,6 +472,28 @@ export const crisisBeacons = mysqlTable("crisis_beacons", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
+// ── Race 7 Tables ──────────────────────────────────────────────────────
+
+// Essentials Box Orders — fulfillment queue for Wizard of Oz delivery
+export const essentialsOrders = mysqlTable("essentials_orders", {
+  id: int("id").autoincrement().primaryKey(),
+  profileId: int("profileId"),                                         // null for manual admin orders
+  userId: int("userId"),
+  memberName: varchar("memberName", { length: 256 }),
+  memberEmail: varchar("memberEmail", { length: 320 }),
+  deliveryAddress: text("deliveryAddress").notNull(),
+  postalCode: varchar("postalCode", { length: 16 }),
+  itemsRequested: text("itemsRequested"),                               // JSON or freeform text
+  status: mysqlEnum("status", ["pending", "packed", "shipped", "delivered", "cancelled"]).default("pending").notNull(),
+  notes: text("notes"),                                                 // admin notes (e.g. "Amazon order #123")
+  courierMethod: varchar("courierMethod", { length: 256 }),             // courier name or method
+  trackingNumber: varchar("trackingNumber", { length: 256 }),
+  requestSource: varchar("requestSource", { length: 64 }).default("member").notNull(), // member, admin_manual, grace_chat
+  statusUpdatedAt: timestamp("statusUpdatedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
 // Destiny Moonshot — tracks the reveal ceremony
 export const destinyMoonshots = mysqlTable("destiny_moonshots", {
   id: int("id").autoincrement().primaryKey(),

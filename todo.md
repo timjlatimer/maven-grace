@@ -257,4 +257,28 @@
 - [x] Confirm dual indicator visible on ALL pages including landing page
 - [x] Run all tests — confirmed 88 passing across 7 files
 - [x] Commit to GitHub timjlatimer/maven-grace with hash — commit 20e0ba9 confirmed live
-- [ ] Deploy to mavengrace-oh49sfbq.manus.space — IN PROGRESS
+- [x] Deploy to mavengrace-oh49sfbq.manus.space — deployed, checkpoint b3cbd9e9
+
+## Race 7 — Build Sprint (Mar 21, 2026)
+
+### Deliverable 1: Essentials Box Back Office
+- [x] Database: essentials_orders table (order #, profile, address, items, status, notes, courier)
+- [x] Backend: fulfillment CRUD routes (list, update status, add notes, create manual order, CSV export)
+- [x] Backend: member-facing order creation route (creates entry when member requests box)
+- [x] Frontend: /admin/fulfillment page (admin-gated, table with filters, status updates, notes, CSV export, manual order button)
+- [x] Frontend: member-facing order confirmation in Grace chat / membership flow (via tRPC fulfillment.requestBox)
+
+### Deliverable 2: Facebook Groups Launch Content
+- [x] Research top 10 Facebook Groups in Red Deer / North Alberta for Ruby Red
+- [x] Write 3 Facebook post drafts (warm, community-first, not salesy)
+- [x] Compile into vault-ready document (committed to vault)
+
+### Deliverable 3: Grace Onboarding Audit
+- [x] Audit current GraceChat.tsx onboarding flow — identified: hasStarted button gate blocking Grace from speaking first
+- [x] Fix: Grace speaks first — removed hasStarted gate, auto-start on useEffect mount, warm loading state
+- [x] Confirm no forms, no delays, no cold UI before Grace's voice — pulsing sparkle + "Grace is getting ready..."
+
+### Race 7 Infrastructure
+- [x] Write vitest tests for all Race 7 features (20 new tests, 108 total across 8 files)
+- [ ] Commit to GitHub timjlatimer/maven-grace
+- [ ] Deploy to mavengrace-oh49sfbq.manus.space

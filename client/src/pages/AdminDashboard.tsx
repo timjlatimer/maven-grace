@@ -138,6 +138,22 @@ export default function AdminDashboard() {
           <p className="text-teal-500 text-xs mt-3">All figures are estimated. North Star KPI: 100% lift in 90 days.</p>
         </Card>
 
+        {/* Fulfillment Queue Link */}
+        <Link href="/admin/fulfillment">
+          <Card className="p-4 border border-amber-200 bg-amber-50 cursor-pointer hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Package className="w-5 h-5 text-amber-600" />
+                <div>
+                  <h3 className="font-semibold text-amber-800">Essentials Box Fulfillment</h3>
+                  <p className="text-xs text-amber-600">Manage orders, update status, track deliveries</p>
+                </div>
+              </div>
+              <span className="text-amber-400 text-lg">→</span>
+            </div>
+          </Card>
+        </Link>
+
         {/* North Star tracker */}
         <Card className="p-4 border border-gray-200">
           <h3 className="font-semibold text-gray-800 mb-2">North Star KPI Tracker</h3>

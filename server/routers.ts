@@ -1643,6 +1643,116 @@ MOOD: [uplifting/warm/empowering]
         return messages.sort((a, b) => a.priority - b.priority);
       }),
   }),
+
+  // ─── ESSENTIALS BOX FULFILLMENT (Race 7) ────────────────────────
+  fulfillment: router({
+    // Member-facing: request an Essentials Box
+    requestBox: protectedProcedure
+      .input(z.object({
+        profileId: z.number(),
+        deliveryAddress: z.string().min(5),
+        postalCode: z.string().optional(),
+        itemsRequested: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const order = await db.createEssentialsOrder({
+          profileId: input.profileId,
+          userId: ctx.user?.id,
+          memberName: ctx.user?.name ?? undefined,
+          memberEmail: ctx.user?.email ?? undefined,
+          deliveryAddress: input.deliveryAddress,
+          postalCode: input.postalCode,
+          itemsRequested: input.itemsRequested,
+          requestSource: "member",
+        });
+        return { orderId: order.id, message: "Your Essentials Box is on its way! We'll notify you when it ships." };
+      }),
+
+    // Member-facing: view my orders
+    myOrders: protectedProcedure
+      .input(z.object({ profileId: z.number() }))
+      .query(async ({ input }) => {
+        return db.getMemberOrders(input.profileId);
+      }),
+
+    // Admin: list all orders with optional status filter
+    listOrders: protectedProcedure
+      .input(z.object({ status: z.string().optional() }))
+      .query(async ({ ctx, input }) => {
+        if (ctx.user?.role !== 'admin') throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin only' });
+        return db.listEssentialsOrders(input.status);
+      }),
+
+    // Admin: get order stats
+    orderStats: protectedProcedure
+      .query(async ({ ctx }) => {
+        if (ctx.user?.role !== 'admin') throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin only' });
+        return db.getEssentialsOrderStats();
+      }),
+
+    // Admin: update order status
+    updateStatus: protectedProcedure
+      .input(z.object({
+        orderId: z.number(),
+        status: z.enum(["pending", "packed", "shipped", "delivered", "cancelled"]),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== 'admin') throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin only' });
+        await db.updateEssentialsOrderStatus(input.orderId, input.status);
+        return { success: true };
+      }),
+
+    // Admin: update notes
+    updateNotes: protectedProcedure
+      .input(z.object({
+        orderId: z.number(),
+        notes: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== 'admin') throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin only' });
+        await db.updateEssentialsOrderNotes(input.orderId, input.notes);
+        return { success: true };
+      }),
+
+    // Admin: update courier/tracking
+    updateCourier: protectedProcedure
+      .input(z.object({
+        orderId: z.number(),
+        courierMethod: z.string(),
+        trackingNumber: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== 'admin') throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin only' });
+        await db.updateEssentialsOrderCourier(input.orderId, input.courierMethod, input.trackingNumber);
+        return { success: true };
+      }),
+
+    // Admin: create manual order
+    createManual: protectedProcedure
+      .input(z.object({
+        memberName: z.string().min(1),
+        memberEmail: z.string().optional(),
+        deliveryAddress: z.string().min(5),
+        postalCode: z.string().optional(),
+        itemsRequested: z.string().optional(),
+        notes: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== 'admin') throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin only' });
+        const order = await db.createEssentialsOrder({
+          memberName: input.memberName,
+          memberEmail: input.memberEmail,
+          deliveryAddress: input.deliveryAddress,
+          postalCode: input.postalCode,
+          itemsRequested: input.itemsRequested,
+          requestSource: "admin_manual",
+        });
+        if (input.notes) {
+          await db.updateEssentialsOrderNotes(order.id, input.notes);
+        }
+        return { orderId: order.id, success: true };
+      }),
+  }),
 });
 
 // ─── DESTINY QUESTIONS (30 Questions, 3 Waves) ──────────────────────

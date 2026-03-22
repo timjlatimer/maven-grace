@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE `essentials_orders` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`profileId` int,\n\t`userId` int,\n\t`memberName` varchar(256),\n\t`memberEmail` varchar(320),\n\t`deliveryAddress` text NOT NULL,\n\t`postalCode` varchar(16),\n\t`itemsRequested` text,\n\t`status` enum('pending','packed','shipped','delivered','cancelled') NOT NULL DEFAULT 'pending',\n\t`notes` text,\n\t`courierMethod` varchar(256),\n\t`trackingNumber` varchar(256),\n\t`requestSource` varchar(64) NOT NULL DEFAULT 'member',\n\t`statusUpdatedAt` timestamp,\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\t`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,\n\tCONSTRAINT `essentials_orders_id` PRIMARY KEY(`id`)\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2FFeXoKxb3oBnnU.d2413d298150 --database oH49sFBQoVwXJu8q29epa7 --execute CREATE TABLE `essentials_orders` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`profileId` int,\n\t`userId` int,\n\t`memberName` varchar(256),\n\t`memberEmail` varchar(320),\n\t`deliveryAddress` text NOT NULL,\n\t`postalCode` varchar(16),\n\t`itemsRequested` text,\n\t`status` enum('pending','packed','shipped','delivered','cancelled') NOT NULL DEFAULT 'pending',\n\t`notes` text,\n\t`courierMethod` varchar(256),\n\t`trackingNumber` varchar(256),\n\t`requestSource` varchar(64) NOT NULL DEFAULT 'member',\n\t`statusUpdatedAt` timestamp,\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\t`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,\n\tCONSTRAINT `essentials_orders_id` PRIMARY KEY(`id`)\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 3286
+}
