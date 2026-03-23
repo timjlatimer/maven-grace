@@ -104,14 +104,14 @@ function Router() {
       <Route path="/finances" component={FinancialDashboard} />
       <Route path="/accessibility" component={AccessibilitySettings} />
       {/* Pulse Zone — Race 20A */}
-      <Route path="/pulse" component={PulseHome} />
-      <Route path="/pulse/battery" component={PulseRelationshipBattery} />
-      <Route path="/pulse/dignity" component={PulseDignityScore} />
-      <Route path="/pulse/village" component={PulseVillageActive} />
-      <Route path="/pulse/give-back" component={PulseGiveBack} />
-      <Route path="/pulse/north-star" component={PulseNorthStar90Day} />
-      <Route path="/pulse/north-star/prime" component={PulseNorthStarPrime} />
-      <Route path="/pulse/north-star/ding" component={PulseNorthStarDing} />
+      <Route path="/pulse-zone" component={PulseHome} />
+      <Route path="/pulse-zone/battery" component={PulseRelationshipBattery} />
+      <Route path="/pulse-zone/dignity" component={PulseDignityScore} />
+      <Route path="/pulse-zone/village" component={PulseVillageActive} />
+      <Route path="/pulse-zone/give-back" component={PulseGiveBack} />
+      <Route path="/pulse-zone/north-star" component={PulseNorthStar90Day} />
+      <Route path="/pulse-zone/north-star/prime" component={PulseNorthStarPrime} />
+      <Route path="/pulse-zone/north-star/ding" component={PulseNorthStarDing} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

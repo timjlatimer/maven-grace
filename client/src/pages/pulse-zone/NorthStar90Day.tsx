@@ -12,7 +12,7 @@ export default function NorthStar90Day() {
     <div className="min-h-screen pb-24" style={{ backgroundColor: COLORS.darkStarfield }}>
       {/* Header */}
       <div className="px-4 pt-4 pb-2">
-        <button onClick={() => navigate("/pulse")} className="flex items-center gap-1 mb-3">
+        <button onClick={() => navigate("/pulse-zone")} className="flex items-center gap-1 mb-3">
           <ChevronLeft className="w-4 h-4" style={{ color: COLORS.teal }} />
           <span className="text-sm" style={{ color: COLORS.teal }}>Pulse Zone</span>
         </button>
@@ -110,7 +110,7 @@ export default function NorthStar90Day() {
       {/* Navigation to Prime North Star */}
       <div className="px-4 mt-6 flex flex-col items-center">
         <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS.amber }} />
-        <button onClick={() => navigate("/pulse/north-star/prime")} className="flex items-center gap-2 mt-2">
+        <button onClick={() => navigate("/pulse-zone/north-star/prime")} className="flex items-center gap-2 mt-2">
           <span className="text-sm" style={{ color: COLORS.teal }}>There's a bigger reason you're here</span>
           <ArrowRight className="w-4 h-4" style={{ color: COLORS.teal }} />
         </button>

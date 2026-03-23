@@ -34,7 +34,7 @@ const moreNav = [
   { path: "/consciousness", icon: Layers, label: "Tiers" },
   { path: "/accessibility", icon: Accessibility, label: "Accessibility" },
   { path: "/community", icon: Share2, label: "Community" },
-  { path: "/pulse", icon: Activity, label: "Pulse Zone" },
+  { path: "/pulse-zone", icon: Activity, label: "Pulse Zone" },
   { path: "/onboarding", icon: Sparkles, label: "Setup" },
 ];
 

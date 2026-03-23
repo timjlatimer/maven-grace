@@ -22,7 +22,7 @@ export default function RelationshipBattery() {
     <div className="min-h-screen pb-24" style={{ backgroundColor: COLORS.background }}>
       {/* Header */}
       <div className="px-4 pt-4 pb-2">
-        <button onClick={() => navigate("/pulse")} className="flex items-center gap-1 mb-3">
+        <button onClick={() => navigate("/pulse-zone")} className="flex items-center gap-1 mb-3">
           <ChevronLeft className="w-4 h-4" style={{ color: COLORS.amber }} />
           <span className="text-sm" style={{ color: COLORS.amber }}>Pulse Zone</span>
         </button>

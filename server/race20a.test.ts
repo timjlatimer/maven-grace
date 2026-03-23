@@ -147,7 +147,7 @@ describe("Race 20A — Pulse Zone MVP", () => {
         "utf-8"
       );
       expect(file).toContain("Pulse Zone");
-      expect(file).toContain("/pulse");
+      expect(file).toContain("/pulse-zone");
     });
   });
 
@@ -494,14 +494,14 @@ describe("Race 20A — Pulse Zone MVP", () => {
         path.resolve("client/src/App.tsx"),
         "utf-8"
       );
-      expect(file).toContain('path="/pulse"');
-      expect(file).toContain('path="/pulse/battery"');
-      expect(file).toContain('path="/pulse/dignity"');
-      expect(file).toContain('path="/pulse/village"');
-      expect(file).toContain('path="/pulse/give-back"');
-      expect(file).toContain('path="/pulse/north-star"');
-      expect(file).toContain('path="/pulse/north-star/prime"');
-      expect(file).toContain('path="/pulse/north-star/ding"');
+      expect(file).toContain('path="/pulse-zone"');
+      expect(file).toContain('path="/pulse-zone/battery"');
+      expect(file).toContain('path="/pulse-zone/dignity"');
+      expect(file).toContain('path="/pulse-zone/village"');
+      expect(file).toContain('path="/pulse-zone/give-back"');
+      expect(file).toContain('path="/pulse-zone/north-star"');
+      expect(file).toContain('path="/pulse-zone/north-star/prime"');
+      expect(file).toContain('path="/pulse-zone/north-star/ding"');
     });
 
     it("BottomNav includes Pulse Zone link", () => {
@@ -509,7 +509,7 @@ describe("Race 20A — Pulse Zone MVP", () => {
         path.resolve("client/src/components/BottomNav.tsx"),
         "utf-8"
       );
-      expect(file).toContain("/pulse");
+      expect(file).toContain("/pulse-zone");
       expect(file).toContain("Pulse Zone");
     });
 

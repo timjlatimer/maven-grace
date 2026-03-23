@@ -15,7 +15,7 @@ export default function VillageActive() {
     <div className="min-h-screen pb-24" style={{ backgroundColor: COLORS.villageBg }}>
       {/* Header */}
       <div className="px-4 pt-4 pb-2">
-        <button onClick={() => navigate("/pulse")} className="flex items-center gap-1 mb-3">
+        <button onClick={() => navigate("/pulse-zone")} className="flex items-center gap-1 mb-3">
           <ChevronLeft className="w-4 h-4" style={{ color: COLORS.amber }} />
           <span className="text-sm" style={{ color: COLORS.amber }}>Pulse Zone</span>
         </button>
@@ -202,7 +202,7 @@ export default function VillageActive() {
             <p className="text-xs" style={{ color: COLORS.textSecondary }}>Explore everything</p>
           </div>
           <button
-            onClick={() => navigate("/pulse/give-back")}
+            onClick={() => navigate("/pulse-zone/give-back")}
             className="w-12 h-12 rounded-full flex items-center justify-center"
             style={{ backgroundColor: 'rgba(45,212,191,0.15)', border: `2px solid ${COLORS.teal}` }}
           >

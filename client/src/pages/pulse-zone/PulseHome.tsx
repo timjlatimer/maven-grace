@@ -97,9 +97,9 @@ export default function PulseHome() {
     <div className="relative min-h-screen overflow-hidden" style={{ backgroundColor: COLORS.background }}>
       {/* KPI Pill Row */}
       <div className="relative z-10 flex gap-2 px-3 pt-4 pb-2 overflow-x-auto">
-        <KPIPill label={kpiPills.battery.label} value={kpiPills.battery.value} icon={Battery} onClick={() => navigate("/pulse/battery")} />
-        <KPIPill label={kpiPills.dignity.label} value={kpiPills.dignity.value} icon={Star} onClick={() => navigate("/pulse/dignity")} />
-        <KPIPill label={kpiPills.village.label} value={kpiPills.village.value} icon={Users} onClick={() => navigate("/pulse/village")} />
+        <KPIPill label={kpiPills.battery.label} value={kpiPills.battery.value} icon={Battery} onClick={() => navigate("/pulse-zone/battery")} />
+        <KPIPill label={kpiPills.dignity.label} value={kpiPills.dignity.value} icon={Star} onClick={() => navigate("/pulse-zone/dignity")} />
+        <KPIPill label={kpiPills.village.label} value={kpiPills.village.value} icon={Users} onClick={() => navigate("/pulse-zone/village")} />
       </div>
 
       {/* Greeting */}
@@ -109,7 +109,7 @@ export default function PulseHome() {
       </div>
 
       {/* Floating North Star */}
-      <FloatingNorthStar onClick={() => navigate("/pulse/north-star")} />
+      <FloatingNorthStar onClick={() => navigate("/pulse-zone/north-star")} />
 
       {/* Heartbeat Circle */}
       <div className="relative z-10 flex flex-col items-center justify-center" style={{ minHeight: '55vh' }}>
@@ -175,7 +175,7 @@ export default function PulseHome() {
       </div>
 
       {/* Floating TP Roll */}
-      <FloatingTPRoll onClick={() => navigate("/pulse/give-back")} />
+      <FloatingTPRoll onClick={() => navigate("/pulse-zone/give-back")} />
     </div>
   );
 }

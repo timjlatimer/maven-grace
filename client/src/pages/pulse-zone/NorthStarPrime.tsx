@@ -19,7 +19,7 @@ export default function NorthStarPrime() {
     <div className="min-h-screen pb-24" style={{ backgroundColor: COLORS.darkStarfield }}>
       {/* Header */}
       <div className="px-4 pt-4 pb-2">
-        <button onClick={() => navigate("/pulse/north-star")} className="flex items-center gap-1 mb-3">
+        <button onClick={() => navigate("/pulse-zone/north-star")} className="flex items-center gap-1 mb-3">
           <ChevronLeft className="w-4 h-4" style={{ color: COLORS.teal }} />
           <span className="text-sm" style={{ color: COLORS.teal }}>North Star</span>
         </button>
@@ -86,7 +86,7 @@ export default function NorthStarPrime() {
       {/* Navigation to Ding */}
       <div className="px-4 mt-6 flex flex-col items-center">
         <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS.teal }} />
-        <button onClick={() => navigate("/pulse/north-star/ding")} className="flex items-center gap-2 mt-2">
+        <button onClick={() => navigate("/pulse-zone/north-star/ding")} className="flex items-center gap-2 mt-2">
           <span className="text-sm" style={{ color: COLORS.teal }}>And then there's the biggest reason of all</span>
           <ArrowRight className="w-4 h-4" style={{ color: COLORS.teal }} />
         </button>

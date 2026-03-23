@@ -12,7 +12,7 @@ export default function NorthStarDing() {
     <div className="min-h-screen pb-24" style={{ backgroundColor: COLORS.darkStarfield }}>
       {/* Header */}
       <div className="px-4 pt-4 pb-2">
-        <button onClick={() => navigate("/pulse/north-star/prime")} className="flex items-center gap-1 mb-3">
+        <button onClick={() => navigate("/pulse-zone/north-star/prime")} className="flex items-center gap-1 mb-3">
           <ChevronLeft className="w-4 h-4" style={{ color: COLORS.teal }} />
           <span className="text-sm" style={{ color: COLORS.teal }}>Prime North Star</span>
         </button>
