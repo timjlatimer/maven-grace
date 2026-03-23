@@ -25,7 +25,7 @@ const KPI_ITEMS = [
   { key: "daysToPayday", emoji: "📅", label: "Days to Next Payday" },
   { key: "creditsEarned", emoji: "💳", label: "Community Credits Earned" },
   { key: "villageMembers", emoji: "🌟", label: "Village Members Active" },
-  { key: "graceBattery", emoji: "🔋", label: "Grace Battery" },
+  { key: "graceBattery", emoji: "🔋", label: "Relationship Battery" },
 ];
 
 /**

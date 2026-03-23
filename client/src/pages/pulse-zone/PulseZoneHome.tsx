@@ -139,7 +139,7 @@ export default function PulseZoneHome() {
       <div className="flex items-center gap-2 px-4 pt-4 pb-2 overflow-x-auto" data-testid="kpi-pills">
         <KpiPill
           icon="🔋"
-          label="Grace Battery"
+          label="Relationship Battery"
           value={`${pulseZoneHome.batteryLevel}%`}
           onClick={() => navigate('/pulse-zone/battery')}
         />

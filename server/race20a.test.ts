@@ -62,12 +62,12 @@ describe("Race 20A — Pulse Zone MVP", () => {
       expect(file).toBeTruthy();
     });
 
-    it("has 3 KPI pills (Grace Battery, Dignity Score, Village Active)", () => {
+    it("has 3 KPI pills (Relationship Battery, Dignity Score, Village Active)", () => {
       const file = fs.readFileSync(
         path.resolve("client/src/pages/pulse-zone/PulseZoneHome.tsx"),
         "utf-8"
       );
-      expect(file).toContain("Grace Battery");
+      expect(file).toContain("Relationship Battery");
       expect(file).toContain("Dignity Score");
       expect(file).toContain("Village Active");
     });
