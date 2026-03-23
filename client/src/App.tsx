@@ -53,6 +53,16 @@ const CommunityMesh = lazy(() => import("./pages/CommunityMesh"));
 const OnboardingFlow = lazy(() => import("./pages/OnboardingFlow"));
 const AdminAnalytics = lazy(() => import("./pages/AdminAnalytics"));
 
+// Pulse Zone — Race 20A
+const PulseZoneHome = lazy(() => import("./pages/pulse-zone/PulseZoneHome"));
+const RelationshipBattery = lazy(() => import("./pages/pulse-zone/RelationshipBattery"));
+const DignityScorePZ = lazy(() => import("./pages/pulse-zone/DignityScore"));
+const VillageActive = lazy(() => import("./pages/pulse-zone/VillageActive"));
+const GiveBack = lazy(() => import("./pages/pulse-zone/GiveBack"));
+const NorthStar90Day = lazy(() => import("./pages/pulse-zone/NorthStar90Day"));
+const NorthStarPrime = lazy(() => import("./pages/pulse-zone/NorthStarPrime"));
+const NorthStarDing = lazy(() => import("./pages/pulse-zone/NorthStarDing"));
+
 function Router() {
   return (
     <Suspense fallback={<PageLoadingSkeleton />}>
@@ -93,6 +103,15 @@ function Router() {
       <Route path="/grace-world" component={GraceWorld} />
       <Route path="/finances" component={FinancialDashboard} />
       <Route path="/accessibility" component={AccessibilitySettings} />
+      {/* Pulse Zone — Race 20A */}
+      <Route path="/pulse-zone" component={PulseZoneHome} />
+      <Route path="/pulse-zone/battery" component={RelationshipBattery} />
+      <Route path="/pulse-zone/dignity" component={DignityScorePZ} />
+      <Route path="/pulse-zone/village" component={VillageActive} />
+      <Route path="/pulse-zone/give-back" component={GiveBack} />
+      <Route path="/pulse-zone/north-star" component={NorthStar90Day} />
+      <Route path="/pulse-zone/north-star/prime" component={NorthStarPrime} />
+      <Route path="/pulse-zone/north-star/ding" component={NorthStarDing} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
