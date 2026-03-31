@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLocation } from "wouter";
-import { Heart, Gift, Music, Shield, TrendingUp, ArrowRight, Sparkles, Package, MapPin, ChevronDown, HelpCircle, Lock, Eye, EyeOff, Users } from "lucide-react";
+import { Heart, Gift, Music, Shield, TrendingUp, ArrowRight, Sparkles, Package, MapPin, ChevronDown, HelpCircle, Lock, Eye, EyeOff, Users, Zap } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import { useGraceSession } from "@/hooks/useGraceSession";
 import PersonalityOnboardingGate from "@/components/PersonalityOnboardingGate";
@@ -118,6 +118,25 @@ export default function Home() {
           </Card>
         </motion.div>
 
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <Card className="border-purple-500/20 hover:border-purple-500/40 transition-colors cursor-pointer" onClick={() => navigate("/goosebump-choice")}>
+            <CardContent className="flex items-start gap-4 p-4">
+              <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center shrink-0">
+                <Zap className="w-5 h-5 text-purple-500" />
+              </div>
+              <div>
+                <h3 className="font-bold text-foreground">Goosebump Choice</h3>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  A song engineered to give you chills. 7-phase emotional arc, 8 frisson triggers. Maria built this for the moments when you need to feel something real.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}

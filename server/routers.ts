@@ -2624,6 +2624,153 @@ MOOD: [uplifting/warm/empowering]
         return db.getConversationSummary(input.profileId);
       }),
   }),
+
+  // ─── GOOSEBUMP CHOICE ─────────────────────────────────────────────────────────────────────────────────
+  // Powered by Maria's MCP server (Italy Trip) via REST API
+  // POST /api/maria/v1/generate-goosebump with Bearer MARIA_ADMIN_PASSWORD
+  // 7-phase emotional arc + 8 validated frisson triggers
+  goosebumpChoice: router({
+    generate: publicProcedure
+      .input(z.object({
+        profileId: z.number().optional(),
+        context: z.object({
+          name: z.string().optional(),
+          emotion: z.string().optional(),
+          theme: z.string().optional(),
+          personalDetail: z.string().optional(),
+        }).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { ENV } = await import("./_core/env.js");
+        // Load profile context if available
+        let profileContext: Record<string, string | undefined> = {};
+        if (input.profileId) {
+          try {
+            const profile = await db.getProfileById(input.profileId);
+            const memories = await db.getMemories(input.profileId);
+            profileContext = {
+              name: profile?.firstName ?? undefined,
+              city: profile?.city ?? undefined,
+              kidsCount: profile?.kidsCount ? String(profile.kidsCount) : undefined,
+              recentMemory: memories?.[0]?.fact ?? undefined,
+            };
+          } catch (e) {
+            console.warn('[GoosebumpChoice] Could not load profile context:', e);
+          }
+        }
+        const merged: Record<string, string | undefined> = { ...profileContext, ...(input.context as Record<string, string | undefined> | undefined) };
+        const mariaToken = ENV.mariaAdminPassword;
+        let mariaResult: {
+          title?: string;
+          lyrics?: string;
+          genre?: string;
+          mood?: string;
+          goosebumpScore?: number;
+          frisson_triggers?: string[];
+          emotional_arc?: string[];
+          status?: string;
+        } = {};
+        // Try Maria's REST API first
+        if (mariaToken) {
+          try {
+            const mariaUrl = `${ENV.mariaApiUrl}/api/maria/v1/generate-goosebump`;
+            const response = await fetch(mariaUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${mariaToken}`,
+              },
+              body: JSON.stringify({
+                context: merged,
+                mode: 'full_arc',
+                frisson_triggers: 'all',
+              }),
+              signal: AbortSignal.timeout(15000),
+            });
+            if (response.ok) {
+              mariaResult = await response.json() as typeof mariaResult;
+              mariaResult.status = 'maria_api';
+            } else {
+              console.warn('[GoosebumpChoice] Maria API returned', response.status);
+            }
+          } catch (e) {
+            console.warn('[GoosebumpChoice] Maria API unreachable, using Grace fallback:', e);
+          }
+        }
+        // Fallback: generate locally via LLM using Goosebump Protocol
+        if (!mariaResult.lyrics) {
+          const contextLines = [
+            merged.name ? `Name: ${merged.name}` : '',
+            merged.city ? `Lives in: ${merged.city}` : '',
+            merged.kidsCount ? `Has ${merged.kidsCount} kid(s)` : '',
+            merged.emotion ? `Feeling: ${merged.emotion}` : '',
+            merged.theme ? `Theme: ${merged.theme}` : '',
+            merged.personalDetail ? `Personal detail: ${merged.personalDetail}` : '',
+            merged.recentMemory ? `Recent memory: ${merged.recentMemory}` : '',
+          ].filter(Boolean).join('\n');
+          const llmResult = await invokeLLM({
+            messages: [
+              {
+                role: 'system',
+                content: `You are a master songwriter trained in the Goosebump Protocol — a compositional system engineered to maximize frisson (aesthetic chills).\n\nYour songs follow the 7-phase emotional arc: Intro (tension building), Buildup (expectation setting), Primary Trigger (sudden dramatic shift), Resolution (emotional release), Secondary Trigger (deeper frisson), Climax (maximum emotional peak), Denouement (return to equilibrium).\n\nYou embed the 8 validated frisson triggers: sudden dynamic changes, unexpected harmonies, melodic appoggiaturas, minor-to-major key shifts (Picardy thirds), human voice entrance, solo instrument emergence, silence followed by sound, tempo drops.\n\nWrite for Ruby Red — the 35-45 year old mom who is the CFO of her household, working poor, left out and left behind. She is making hard decisions every day. She deserves a song that gives her chills and reminds her she is extraordinary.\n\nFormat EXACTLY as:\nTITLE: [song title]\nGENRE: [orchestral pop/soul/folk-orchestral/cinematic]\nMOOD: [triumphant/transcendent/deeply moving]\nGOOSEBUMP_SCORE: [0-100]\nFRISSON_TRIGGERS: [comma-separated list]\nEMOTIONAL_ARC: [comma-separated phase names]\n\n[Verse 1]\n...\n[Bridge — Primary Trigger]\n...\n[Chorus — Resolution]\n...\n[Verse 2]\n...\n[Climax — Secondary Trigger + Peak]\n...\n[Final Chorus]\n...\n[Outro — Denouement]\n...`,
+              },
+              {
+                role: 'user',
+                content: `Write a Goosebump Choice song for this person:\n${contextLines || 'A strong, resilient woman who carries her family every day.'}`,
+              },
+            ],
+          });
+          const songText = String(llmResult.choices?.[0]?.message?.content || '');
+          const titleMatch = songText.match(/TITLE:\s*(.+)/i);
+          const genreMatch = songText.match(/GENRE:\s*(.+)/i);
+          const moodMatch = songText.match(/MOOD:\s*(.+)/i);
+          const scoreMatch = songText.match(/GOOSEBUMP_SCORE:\s*(\d+)/i);
+          const triggersMatch = songText.match(/FRISSON_TRIGGERS:\s*(.+)/i);
+          const arcMatch = songText.match(/EMOTIONAL_ARC:\s*(.+)/i);
+          mariaResult = {
+            title: titleMatch?.[1]?.trim() || 'Your Goosebump Song',
+            lyrics: songText,
+            genre: genreMatch?.[1]?.trim() || 'orchestral pop',
+            mood: moodMatch?.[1]?.trim() || 'triumphant',
+            goosebumpScore: scoreMatch ? parseInt(scoreMatch[1], 10) : 85,
+            frisson_triggers: triggersMatch?.[1]?.split(',').map((t: string) => t.trim()) || [],
+            emotional_arc: arcMatch?.[1]?.split(',').map((a: string) => a.trim()) || [],
+            status: 'grace_fallback',
+          };
+        }
+        // Persist to songs table if we have a profile
+        let songId: number | undefined;
+        if (input.profileId && mariaResult.lyrics) {
+          try {
+            const song = await db.createSong({
+              profileId: input.profileId,
+              title: mariaResult.title || 'Goosebump Choice',
+              lyrics: mariaResult.lyrics,
+              genre: mariaResult.genre || 'orchestral pop',
+              mood: mariaResult.mood || 'triumphant',
+              personalDetails: JSON.stringify(merged),
+              generationPrompt: 'goosebump-choice',
+              status: 'ready',
+            });
+            songId = song?.id;
+          } catch (e) {
+            console.warn('[GoosebumpChoice] Could not save song to DB:', e);
+          }
+        }
+        return {
+          songId,
+          title: mariaResult.title || 'Your Goosebump Song',
+          lyrics: mariaResult.lyrics || '',
+          genre: mariaResult.genre || 'orchestral pop',
+          mood: mariaResult.mood || 'triumphant',
+          goosebumpScore: mariaResult.goosebumpScore ?? 85,
+          frissonTriggers: mariaResult.frisson_triggers ?? [],
+          emotionalArc: mariaResult.emotional_arc ?? [],
+          source: mariaResult.status === 'grace_fallback' ? 'grace_fallback' : 'maria_api',
+          status: 'ready' as const,
+        };
+      }),
+  }),
 });
 
 // ─── DESTINY QUESTIONS (30 Questions, 3 Waves) ──────────────────────

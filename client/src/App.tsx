@@ -52,6 +52,7 @@ const StripeCancel = lazy(() => import("./pages/StripeCancel"));
 const CommunityMesh = lazy(() => import("./pages/CommunityMesh"));
 const OnboardingFlow = lazy(() => import("./pages/OnboardingFlow"));
 const AdminAnalytics = lazy(() => import("./pages/AdminAnalytics"));
+const GoosebumpChoice = lazy(() => import("./pages/GoosebumpChoice"));
 
 function Router() {
   return (
@@ -93,6 +94,7 @@ function Router() {
       <Route path="/grace-world" component={GraceWorld} />
       <Route path="/finances" component={FinancialDashboard} />
       <Route path="/accessibility" component={AccessibilitySettings} />
+      <Route path="/goosebump-choice" component={GoosebumpChoice} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

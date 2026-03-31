@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation, Link } from "wouter";
-import { Home, MessageCircle, Shield, TrendingUp, Map, Package, Wallet, Calendar, Milk, MoreHorizontal, X, Music, Star, Heart, Compass, BookOpen, Users, Battery, Coins, Clock, AlertTriangle, Rocket, Sparkles, Globe, Layers, BarChart3, Accessibility, Share2 } from "lucide-react";
+import { Home, MessageCircle, Shield, TrendingUp, Map, Package, Wallet, Calendar, Milk, MoreHorizontal, X, Music, Star, Heart, Compass, BookOpen, Users, Battery, Coins, Clock, AlertTriangle, Rocket, Sparkles, Globe, Layers, BarChart3, Accessibility, Share2, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const primaryNav = [
@@ -18,6 +18,7 @@ const moreNav = [
   { path: "/bills", icon: Calendar, label: "Bills" },
   { path: "/milk-money", icon: Milk, label: "Milk Money" },
   { path: "/song", icon: Music, label: "My Song" },
+  { path: "/goosebump-choice", icon: Zap, label: "Goosebump" },
   { path: "/dignity", icon: Star, label: "Dignity" },
   { path: "/promises", icon: Heart, label: "Promises" },
   { path: "/destiny", icon: Compass, label: "Destiny" },

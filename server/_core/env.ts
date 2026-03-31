@@ -10,4 +10,9 @@ export const ENV = {
   kieAiApiKey: process.env.KIE_AI_API_KEY ?? "",
   stripeSecretKey: process.env.STRIPE_SECRET_KEY ?? "",
   stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET ?? "",
+  // ─── MARIA API (Italy Trip MCP Server) ─────────────────────────────
+  // Maria's REST API for Goosebump Choice song generation
+  // POST /api/maria/v1/generate-goosebump with Bearer token auth
+  mariaApiUrl: process.env.MARIA_API_URL ?? "https://italytrip-2wnk4uyh.manus.space",
+  mariaAdminPassword: process.env.MARIA_ADMIN_PASSWORD ?? "",
 };
